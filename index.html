@@ -8,7 +8,7 @@
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background-color: #0a0a0a;
+      background-color: #050505;
       color: #fff;
     }
     header {
@@ -143,7 +143,7 @@
   </style>
 </head>
 <body>
-  <header><h1>📱 CELULARES VENDIDOS</h1></header>
+  <!-- CONTENIDO HTML CONTINÚA EN LA PARTE 2 -->
   <div class="saldo">Saldo total: $<span id="saldoTotal">0</span></div>
   <div class="container">
     <button class="add-btn" onclick="abrirFormularioCliente()">➕ Agregar Cliente</button>
@@ -199,6 +199,15 @@
     </div>
   </div>
 
+  <!-- Modal Datos del Cliente -->
+  <div class="modal" id="datosClienteModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="cerrarDatosCliente()">Cerrar</button>
+      <h2 id="datosTitulo">Datos del Cliente</h2>
+      <div id="datosContenido"></div>
+    </div>
+  </div>
+
   <div id="alerta" class="alerta"></div>
 
   <script>
@@ -227,7 +236,9 @@
       const cuota = parseFloat(document.getElementById("cuotaInput").value);
       const fechaPago = document.getElementById("fechaPagoInput").value.trim();
       const equipo = document.getElementById("equipoInput").value.trim();
-      const nota = document.getElementById("notaInput").value.trim();      if (!nombre || !dni || isNaN(credito) || isNaN(cuota) || !fechaPago || !equipo) {
+      const nota = document.getElementById("notaInput").value.trim();
+
+      if (!nombre || !dni || isNaN(credito) || isNaN(cuota) || !fechaPago || !equipo) {
         mostrarAlerta("⚠️ Completa todos los campos obligatorios");
         return;
       }
@@ -258,11 +269,11 @@
         saldo += cliente.credito;
         const fila = document.createElement("tr");
         fila.innerHTML = `
-          <td>${cliente.nombre}</td>
+          <td>${cliente.nombre} <span style="cursor:pointer;" onclick="verDatosCliente(${index})">⚙️</span></td>
           <td>${formatearFecha(cliente.vencimiento)}</td>
-          <td><input type="number" value="${cliente.credito}" onchange="actualizarCredito(${index}, this.value)" /></td>
-          <td><input type="number" value="${cliente.cuota}" onchange="actualizarCuota(${index}, this.value)" /></td>
-          <td><button class="edit-btn" onclick="verCliente(${index})">Editar</button></td>
+          <td><span style="color:#ff00aa;">$</span><input type="number" value="${cliente.credito}" onchange="actualizarCredito(${index}, this.value)" /></td>
+          <td><span style="color:#ff00aa;">$</span><input type="number" value="${cliente.cuota}" onchange="actualizarCuota(${index}, this.value)" /></td>
+          <td><button class="edit-btn" onclick="verCliente(${index})">Movimientos</button></td>
         `;
         tabla.appendChild(fila);
       });
@@ -327,13 +338,29 @@
       mostrarAlerta("✅ Movimiento guardado");
     }
 
+    function verDatosCliente(index) {
+      const cliente = clientes[index];
+      document.getElementById("datosTitulo").textContent = `Datos de ${cliente.nombre}`;
+      document.getElementById("datosContenido").innerHTML = `
+        <p><strong>DNI:</strong> ${cliente.dni}</p>
+        <p><strong>Fecha de pago:</strong> ${cliente.fechaPago}</p>
+        <p><strong>Equipo:</strong> ${cliente.equipo}</p>
+        <p><strong>Nota:</strong> ${cliente.nota || "Sin nota"}</p>
+      `;
+      document.getElementById("datosClienteModal").style.display = "flex";
+    }
+
+    function cerrarDatosCliente() {
+      document.getElementById("datosClienteModal").style.display = "none";
+    }
+
     function formatearFecha(fechaISO) {
       const meses = [
         "enero", "febrero", "marzo", "abril", "mayo", "junio",
         "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
       ];
       const fecha = new Date(fechaISO);
-      const dia = fecha.getDate().toString().padStart(2, '0');
+            const dia = fecha.getDate().toString().padStart(2, '0');
       const mes = meses[fecha.getMonth()];
       const año = fecha.getFullYear();
       return `${dia} de ${mes} de ${año}`;
@@ -343,6 +370,7 @@
   </script>
 </body>
 </html>
+
 
 
 
