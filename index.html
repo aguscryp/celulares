@@ -2,39 +2,39 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Control de Clientes - Celulares</title>
   <style>
     body {
       margin: 0;
-      font-family: 'Courier New', monospace;
-      background-color: #000;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0a0a0a;
       color: #fff;
     }
     header {
+      background: linear-gradient(90deg, #7f00ff, #e100ff);
       padding: 20px;
       text-align: center;
-      background-color: #111;
-      border-bottom: 1px solid #00ff00;
     }
     h1 {
-      color: #00ff00;
       margin: 0;
+      font-size: 1.8em;
     }
     .saldo {
       text-align: right;
       padding: 10px 20px;
       font-size: 1.2em;
-      color: #00ff00;
+      color: #ff00aa;
     }
     .container {
       padding: 20px;
     }
     .add-btn {
-      background-color: #00ff00;
-      color: #000;
+      background: linear-gradient(90deg, #ff00aa, #7f00ff);
+      color: #fff;
       border: none;
       padding: 10px 15px;
+      border-radius: 5px;
       cursor: pointer;
       font-weight: bold;
       float: right;
@@ -46,18 +46,19 @@
       margin-top: 10px;
     }
     th, td {
-      border: 1px solid #00ff00;
+      border: 1px solid #7f00ff;
       padding: 10px;
       text-align: center;
     }
     th {
-      background-color: #111;
+      background-color: #1a1a1a;
     }
     .edit-btn {
       background-color: transparent;
-      border: 1px solid #00ff00;
-      color: #00ff00;
+      border: 1px solid #ff00aa;
+      color: #ff00aa;
       padding: 5px 10px;
+      border-radius: 4px;
       cursor: pointer;
     }
     .modal {
@@ -68,31 +69,56 @@
       background-color: rgba(0, 0, 0, 0.9);
       justify-content: center;
       align-items: center;
+      z-index: 1000;
     }
     .modal-content {
-      background-color: #111;
+      background-color: #1a1a1a;
       padding: 20px;
-      border: 1px solid #00ff00;
+      border: 1px solid #ff00aa;
       width: 90%;
       max-width: 600px;
+      border-radius: 8px;
     }
     .close-btn {
       float: right;
-      background-color: #00ff00;
+      background-color: #ff00aa;
       color: #000;
       border: none;
       padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .input-row input {
+      flex: 1;
+      padding: 5px;
+      border-radius: 4px;
+      border: 1px solid #7f00ff;
+      background-color: #0a0a0a;
+      color: #fff;
+    }
+    .save-mov-btn {
+      margin-top: 10px;
+      background-color: #7f00ff;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>CELULARES VENDIDOS</h1>
+    <h1>📱 CELULARES VENDIDOS</h1>
   </header>
   <div class="saldo">Saldo total: $<span id="saldoTotal">0</span></div>
   <div class="container">
-    <button class="add-btn">➕ Agregar Cliente</button>
+    <button class="add-btn" onclick="agregarCliente()">➕ Agregar Cliente</button>
     <table>
       <thead>
         <tr>
@@ -102,9 +128,7 @@
           <th>Acción</th>
         </tr>
       </thead>
-      <tbody id="clientesTabla">
-        <!-- Clientes se insertan aquí -->
-      </tbody>
+      <tbody id="clientesTabla"></tbody>
     </table>
   </div>
 
@@ -112,7 +136,7 @@
   <div class="modal" id="clienteModal">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarModal()">Cerrar</button>
-      <h2>Detalle del Cliente</h2>
+      <h2 id="modalTitulo">Detalle del Cliente</h2>
       <table>
         <thead>
           <tr>
@@ -121,19 +145,20 @@
             <th>Entregado</th>
           </tr>
         </thead>
-        <tbody id="detalleCliente">
-          <!-- Detalles se insertan aquí -->
-        </tbody>
+        <tbody id="detalleCliente"></tbody>
       </table>
+      <div class="input-row">
+        <input type="date" id="fechaInput" />
+        <input type="number" placeholder="Pago" id="pagoInput" />
+        <input type="number" placeholder="Entregado" id="entregadoInput" />
+      </div>
+      <button class="save-mov-btn" onclick="guardarMovimiento()">Guardar Movimiento</button>
     </div>
   </div>
 
   <script>
-    const clientes = [
-      { nombre: "Juan Pérez", vencimiento: "2025-11-10", credito: 15000, detalle: [] },
-      { nombre: "Ana Gómez", vencimiento: "2025-11-15", credito: 20000, detalle: [] },
-      { nombre: "Carlos Ruiz", vencimiento: "2025-11-20", credito: 10000, detalle: [] },
-    ];
+    let clientes = [];
+    let clienteActual = null;
 
     function actualizarTabla() {
       const tabla = document.getElementById("clientesTabla");
@@ -145,7 +170,7 @@
         const fila = document.createElement("tr");
         fila.innerHTML = `
           <td>${cliente.nombre}</td>
-          <td><input type="date" value="${cliente.vencimiento}" /></td>
+          <td><input type="date" value="${cliente.vencimiento}" onchange="actualizarVencimiento(${index}, this.value)" /></td>
           <td>$${cliente.credito}</td>
           <td><button class="edit-btn" onclick="verCliente(${index})">Editar</button></td>
         `;
@@ -155,12 +180,30 @@
       document.getElementById("saldoTotal").textContent = saldo;
     }
 
+    function agregarCliente() {
+      const nombre = prompt("Nombre del cliente:");
+      if (nombre) {
+        clientes.push({
+          nombre,
+          vencimiento: new Date().toISOString().split("T")[0],
+          credito: 0,
+          detalle: []
+        });
+        actualizarTabla();
+      }
+    }
+
+    function actualizarVencimiento(index, nuevaFecha) {
+      clientes[index].vencimiento = nuevaFecha;
+    }
+
     function verCliente(index) {
-      const modal = document.getElementById("clienteModal");
+      clienteActual = index;
+      const cliente = clientes[index];
+      document.getElementById("modalTitulo").textContent = `Detalle de ${cliente.nombre}`;
       const detalle = document.getElementById("detalleCliente");
       detalle.innerHTML = "";
 
-      const cliente = clientes[index];
       cliente.detalle.forEach(item => {
         const fila = document.createElement("tr");
         fila.innerHTML = `
@@ -171,15 +214,38 @@
         detalle.appendChild(fila);
       });
 
-      modal.style.display = "flex";
+      document.getElementById("clienteModal").style.display = "flex";
     }
 
     function cerrarModal() {
       document.getElementById("clienteModal").style.display = "none";
     }
 
+    function guardarMovimiento() {
+      const fecha = document.getElementById("fechaInput").value;
+      const pago = parseFloat(document.getElementById("pagoInput").value);
+      const entregado = parseFloat(document.getElementById("entregadoInput").value);
+
+      if (!fecha || isNaN(pago) || isNaN(entregado)) {
+        alert("Completa todos los campos");
+        return;
+      }
+
+      const cliente = clientes[clienteActual];
+      cliente.detalle.push({ fecha, pago, entregado });
+      cliente.credito += entregado - pago;
+
+      document.getElementById("fechaInput").value = "";
+      document.getElementById("pagoInput").value = "";
+      document.getElementById("entregadoInput").value = "";
+
+      verCliente(clienteActual);
+      actualizarTabla();
+    }
+
     actualizarTabla();
   </script>
 </body>
 </html>
+
 
