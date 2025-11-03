@@ -25,14 +25,13 @@
       text-align: right;
       padding: 10px 20px;
       font-size: 1.2em;
-      color: #fff;
       font-weight: bold;
       animation: pulse 2s infinite;
     }
     @keyframes pulse {
-      0% { text-shadow: 0 0 5px #ff00aa; color: #ff00aa; }
-      50% { text-shadow: 0 0 15px #7f00ff; color: #7f00ff; }
-      100% { text-shadow: 0 0 5px #ff00aa; color: #ff00aa; }
+      0% { color: #ff00aa; text-shadow: 0 0 5px #ff00aa; }
+      50% { color: #7f00ff; text-shadow: 0 0 15px #7f00ff; }
+      100% { color: #ff00aa; text-shadow: 0 0 5px #ff00aa; }
     }
     .container {
       padding: 20px;
@@ -139,9 +138,33 @@
       border-radius: 4px;
       cursor: pointer;
     }
+    .movimientos-scroll {
+      max-height: 250px;
+      overflow-y: auto;
+      margin-top: 10px;
+      border: 1px solid #7f00ff;
+      border-radius: 6px;
+      box-shadow: inset 0 0 10px rgba(127, 0, 255, 0.2);
+    }
+    .etiqueta-pagado {
+      background-color: #ff0033;
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      font-weight: bold;
+      margin-left: 10px;
+      animation: palpitar 2.5s infinite ease-in-out;
+    }
+    @keyframes palpitar {
+      0% { background-color: #ff0033; }
+      50% { background-color: #990022; }
+      100% { background-color: #ff0033; }
+    }
   </style>
 </head>
 <body>
+  <!-- CONTENIDO HTML CONTINÚA AQUÍ -->
   <header><h1>Panel de Crédito Personal</h1></header>
   <div class="saldo">Saldo total: $<span id="saldoTotal">0</span></div>
   <div class="container">
@@ -152,203 +175,275 @@
           <th>Cliente</th>
           <th>Crédito Personal</th>
           <th>Vencimiento</th>
-          <th>Acción</th>
+          <th>Teléfono</th>
         </tr>
       </thead>
       <tbody id="clientesTabla"></tbody>
     </table>
   </div>
 
-  <!-- Formulario Cliente -->
+  <!-- Formulario para agregar cliente -->
   <div class="modal" id="formularioCliente">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarFormularioCliente()">Cerrar</button>
       <h2>Agregar Cliente</h2>
-      <div class="formulario">
-        <input type="text" id="nombreInput" placeholder="Nombre y apellido" />
-        <input type="text" id="dniInput" placeholder="DNI" />
-        <input type="number" id="cuotasInput" placeholder="Cantidad de cuotas" />
-        <input type="number" id="valorCuotaInput" placeholder="Valor de cada cuota" />
-        <input type="date" id="fechaAltaInput" />
-        <input type="text" id="equipoInput" placeholder="Equipo vendido" />
-        <textarea id="notaInput" placeholder="Nota adicional"></textarea>
-      </div>
+      <input type="text" id="nombreInput" placeholder="Nombre y apellido" />
+      <input type="text" id="dniInput" placeholder="DNI" />
+      <input type="number" id="cuotasInput" placeholder="Cantidad de cuotas" />
+      <input type="number" id="valorCuotaInput" placeholder="Valor de cada cuota" />
+      <input type="date" id="fechaAltaInput" />
+      <input type="text" id="equipoInput" placeholder="Equipo vendido" />
+      <textarea id="notaInput" placeholder="Nota adicional"></textarea>
       <button class="save-mov-btn" onclick="guardarCliente()">Guardar Cliente</button>
     </div>
   </div>
 
-  <!-- Modal Datos Cliente + Movimientos -->
+  <!-- Modal para ver datos del cliente -->
   <div class="modal" id="datosClienteModal">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarDatosCliente()">Cerrar</button>
       <h2 id="datosTitulo">Datos del Cliente</h2>
       <div id="datosContenido"></div>
       <h3>Movimientos</h3>
-      <table>
-        <thead><tr><th>Fecha</th><th>Pago</th><th>Entregado</th></tr></thead>
-        <tbody id="detalleCliente"></tbody>
-      </table>
+      <div class="movimientos-scroll">
+        <table>
+          <thead><tr><th>Fecha</th><th>Pago</th><th>Entregado</th></tr></thead>
+          <tbody id="detalleCliente"></tbody>
+        </table>
+      </div>
       <input type="date" id="fechaInput" />
       <input type="number" placeholder="Pago" id="pagoInput" />
       <button class="save-mov-btn" onclick="guardarMovimiento()">Registrar Pago</button>
     </div>
   </div>
 
+  <!-- Modal para editar teléfono -->
+  <div class="modal" id="modalTelefono">
+    <div class="modal-content">
+      <button class="close-btn" onclick="cerrarModalTelefono()">Cerrar</button>
+      <h3>Editar Teléfono</h3>
+      <input type="text" id="telefonoInput" placeholder="Número de teléfono" />
+      <button class="save-mov-btn" onclick="guardarTelefono()">Guardar</button>
+    </div>
+  </div>
+
+  <!-- Modal para editar vencimiento -->
+  <div class="modal" id="modalVencimiento">
+    <div class="modal-content">
+      <button class="close-btn" onclick="cerrarModalVencimiento()">Cerrar</button>
+      <h3>Editar Vencimiento</h3>
+      <input type="date" id="vencimientoInput" />
+      <button class="save-mov-btn" onclick="guardarVencimiento()">Guardar</button>
+    </div>
+  </div>
+
   <div id="alerta" class="alerta"></div>
+<script>
+let clientes = [];
+let clienteActual = null;
+let indexTelefono = null;
+let indexVencimiento = null;
 
-  <script>
-    let clientes = [];
-    let clienteActual = null;
+function mostrarAlerta(mensaje) {
+  const alerta = document.getElementById("alerta");
+  alerta.textContent = mensaje;
+  alerta.style.display = "block";
+  setTimeout(() => alerta.style.display = "none", 3000);
+}
 
-    function mostrarAlerta(mensaje) {
-      const alerta = document.getElementById("alerta");
-      alerta.textContent = mensaje;
-      alerta.style.display = "block";
-      setTimeout(() => alerta.style.display = "none", 3000);
-    }
+function abrirFormularioCliente() {
+  document.getElementById("formularioCliente").style.display = "flex";
+}
 
-    function abrirFormularioCliente() {
-      document.getElementById("formularioCliente").style.display = "flex";
-    }
+function cerrarFormularioCliente() {
+  document.getElementById("formularioCliente").style.display = "none";
+}
 
-    function cerrarFormularioCliente() {
-      document.getElementById("formularioCliente").style.display = "none";
-    }
+function guardarCliente() {
+  const nombre = document.getElementById("nombreInput").value.trim();
+  const dni = document.getElementById("dniInput").value.trim();
+  const cuotas = parseInt(document.getElementById("cuotasInput").value);
+  const valorCuota = parseFloat(document.getElementById("valorCuotaInput").value);
+  const fechaAlta = document.getElementById("fechaAltaInput").value;
+  const equipo = document.getElementById("equipoInput").value.trim();
+  const nota = document.getElementById("notaInput").value.trim();
 
-    function guardarCliente() {
-      const nombre = document.getElementById("nombreInput").value.trim();
-      const       dni = document.getElementById("dniInput").value.trim();
-      const cuotas = parseInt(document.getElementById("cuotasInput").value);
-      const valorCuota = parseFloat(document.getElementById("valorCuotaInput").value);
-      const fechaAlta = document.getElementById("fechaAltaInput").value;
-      const equipo = document.getElementById("equipoInput").value.trim();
-      const nota = document.getElementById("notaInput").value.trim();
+  if (!nombre || !dni || isNaN(cuotas) || isNaN(valorCuota) || !fechaAlta || !equipo) {
+    mostrarAlerta("⚠️ Completa todos los campos obligatorios");
+    return;
+  }
 
-      if (!nombre || !dni || isNaN(cuotas) || isNaN(valorCuota) || !fechaAlta || !equipo) {
-        mostrarAlerta("⚠️ Completa todos los campos obligatorios");
-        return;
-      }
+  const totalCredito = cuotas * valorCuota;
 
-      const totalCredito = cuotas * valorCuota;
+  clientes.push({
+    nombre,
+    dni,
+    cuotas,
+    valorCuota,
+    totalCredito,
+    fechaAlta,
+    equipo,
+    nota,
+    telefono: "",
+    vencimiento: fechaAlta,
+    movimientos: []
+  });
 
-      clientes.push({
-        nombre,
-        dni,
-        cuotas,
-        valorCuota,
-        totalCredito,
-        fechaAlta,
-        equipo,
-        nota,
-        movimientos: []
-      });
+  cerrarFormularioCliente();
+  actualizarTabla();
+  mostrarAlerta("✅ Cliente agregado correctamente");
+}
 
-      cerrarFormularioCliente();
-      actualizarTabla();
-      mostrarAlerta("✅ Cliente agregado correctamente");
-    }
+function actualizarTabla() {
+  const tabla = document.getElementById("clientesTabla");
+  tabla.innerHTML = "";
+  let saldo = 0;
 
-    function actualizarTabla() {
-      const tabla = document.getElementById("clientesTabla");
-      tabla.innerHTML = "";
-      let saldo = 0;
+  clientes.forEach((cliente, index) => {
+    saldo += cliente.totalCredito;
+    const vencimiento = formatearFecha(cliente.vencimiento);
+    const diasRestantes = calcularDiasRestantes(cliente.vencimiento);
+    const totalPagado = cliente.movimientos.reduce((acc, m) => acc + m.pago, 0);
 
-      clientes.forEach((cliente, index) => {
-        saldo += cliente.totalCredito;
-        const vencimiento = calcularVencimiento(cliente.fechaAlta);
-        const fila = document.createElement("tr");
-        fila.innerHTML = `
-          <td>${cliente.nombre} <span style="cursor:pointer;" onclick="verDatosCliente(${index})">⚙️</span></td>
-          <td>${cliente.cuotas} de $${cliente.valorCuota.toLocaleString()} → Total: $${cliente.totalCredito.toLocaleString()}</td>
-          <td>${vencimiento}</td>
-          <td><button class="edit-btn" onclick="verDatosCliente(${index})">Movimientos</button></td>
-        `;
-        tabla.appendChild(fila);
-      });
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td>${cliente.nombre} <span style="cursor:pointer;" onclick="verDatosCliente(${index})">⚙️</span></td>
+      <td>${cliente.cuotas} de $${cliente.valorCuota.toLocaleString()} → Total: $${cliente.totalCredito.toLocaleString()}
+        <span class="etiqueta-pagado">Pagado: $${totalPagado.toLocaleString()}</span>
+      </td>
+      <td>
+        ${vencimiento}
+        <span style="cursor:pointer;" onclick="editarVencimiento(${index})">✏️</span><br>
+        <small>Faltan ${diasRestantes} días</small>
+      </td>
+      <td>
+        ${cliente.telefono || ""}
+        <span style="cursor:pointer;" onclick="editarTelefono(${index})">✏️</span>
+      </td>
+    `;
+    tabla.appendChild(fila);
+  });
 
-      document.getElementById("saldoTotal").textContent = saldo.toLocaleString();
-    }
+  document.getElementById("saldoTotal").textContent = saldo.toLocaleString();
+}
 
-    function calcularVencimiento(fechaAlta) {
-      const fecha = new Date(fechaAlta);
-      fecha.setMonth(fecha.getMonth() + 1);
-      return formatearFecha(fecha.toISOString());
-    }
+function verDatosCliente(index) {
+  clienteActual = index;
+  const cliente = clientes[index];
+  document.getElementById("datosTitulo").textContent = `Datos de ${cliente.nombre}`;
+  document.getElementById("datosContenido").innerHTML = `
+    <p><strong>DNI:</strong> ${cliente.dni}</p>
+    <p><strong>Equipo:</strong> ${cliente.equipo}</p>
+    <p><strong>Nota:</strong> ${cliente.nota || "Sin nota"}</p>
+    <p><strong>Fecha de alta:</strong> ${formatearFecha(cliente.fechaAlta)}</p>
+  `;
+  actualizarMovimientos();
+  document.getElementById("datosClienteModal").style.display = "flex";
+}
 
-    function verDatosCliente(index) {
-      clienteActual = index;
-      const cliente = clientes[index];
-      document.getElementById("datosTitulo").textContent = `Datos de ${cliente.nombre}`;
-      document.getElementById("datosContenido").innerHTML = `
-        <p><strong>DNI:</strong> ${cliente.dni}</p>
-        <p><strong>Equipo:</strong> ${cliente.equipo}</p>
-        <p><strong>Nota:</strong> ${cliente.nota || "Sin nota"}</p>
-        <p><strong>Fecha de alta:</strong> ${formatearFecha(cliente.fechaAlta)}</p>
-        <p><strong>Próximo vencimiento:</strong> ${calcularVencimiento(cliente.fechaAlta)}</p>
-      `;
-      actualizarMovimientos();
-      document.getElementById("datosClienteModal").style.display = "flex";
-    }
+function actualizarMovimientos() {
+  const cliente = clientes[clienteActual];
+  const tbody = document.getElementById("detalleCliente");
+  tbody.innerHTML = "";
+  let entregado = 0;
 
-    function actualizarMovimientos() {
-      const cliente = clientes[clienteActual];
-      const tbody = document.getElementById("detalleCliente");
-      tbody.innerHTML = "";
-      let entregado = 0;
+  cliente.movimientos.forEach(mov => {
+    entregado += mov.pago;
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td>${formatearFecha(mov.fecha)}</td>
+      <td>$${mov.pago.toLocaleString()}</td>
+      <td>$${entregado.toLocaleString()}</td>
+    `;
+    tbody.appendChild(fila);
+  });
 
-      cliente.movimientos.forEach(mov => {
-        entregado += mov.pago;
-        const fila = document.createElement("tr");
-        fila.innerHTML = `
-          <td>${formatearFecha(mov.fecha)}</td>
-          <td>$${mov.pago.toLocaleString()}</td>
-          <td>$${entregado.toLocaleString()}</td>
-        `;
-        tbody.appendChild(fila);
-      });
-    }
+  actualizarTabla();
+}
 
-    function guardarMovimiento() {
-      const fecha = document.getElementById("fechaInput").value;
-      const pago = parseFloat(document.getElementById("pagoInput").value);
+function guardarMovimiento() {
+  const fecha = document.getElementById("fechaInput").value;
+  const pago = parseFloat(document.getElementById("pagoInput").value);
 
-      if (!fecha || isNaN(pago)) {
-        mostrarAlerta("⚠️ Ingresá una fecha y un monto válido");
-        return;
-      }
+  if (!fecha || isNaN(pago)) {
+    mostrarAlerta("⚠️ Ingresá una fecha y un monto válido");
+    return;
+  }
 
-      const cliente = clientes[clienteActual];
-      cliente.movimientos.push({ fecha, pago });
+  const cliente = clientes[clienteActual];
+  cliente.movimientos.push({ fecha, pago });
 
-      document.getElementById("fechaInput").value = "";
-      document.getElementById("pagoInput").value = "";
+  document.getElementById("fechaInput").value = "";
+  document.getElementById("pagoInput").value = "";
 
-      actualizarMovimientos();
-      mostrarAlerta("✅ Movimiento registrado");
-    }
+  actualizarMovimientos();
+  mostrarAlerta("✅ Movimiento registrado");
+}
 
-    function cerrarDatosCliente() {
-      document.getElementById("datosClienteModal").style.display = "none";
-    }
+function editarTelefono(index) {
+  indexTelefono = index;
+  document.getElementById("telefonoInput").value = clientes[index].telefono || "";
+  document.getElementById("modalTelefono").style.display = "flex";
+}
 
-    function formatearFecha(fechaISO) {
-      const meses = [
-        "enero", "febrero", "marzo", "abril", "mayo", "junio",
-        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
-      ];
-      const fecha = new Date(fechaISO);
-      const dia = fecha.getDate().toString().padStart(2, '0');
-      const mes = meses[fecha.getMonth()];
-      const año = fecha.getFullYear();
-      return `${dia} de ${mes} de ${año}`;
-    }
+function guardarTelefono() {
+  const nuevoTelefono = document.getElementById("telefonoInput").value.trim();
+  clientes[indexTelefono].telefono = nuevoTelefono;
+  cerrarModalTelefono();
+  actualizarTabla();
+  mostrarAlerta("📞 Teléfono actualizado");
+}
 
-    actualizarTabla();
-  </script>
+function cerrarModalTelefono() {
+  document.getElementById("modalTelefono").style.display = "none";
+}
+
+function editarVencimiento(index) {
+  indexVencimiento = index;
+  document.getElementById("vencimientoInput").value = clientes[index].vencimiento;
+  document.getElementById("modalVencimiento").style.display = "flex";
+}
+
+function guardarVencimiento() {
+  const nuevaFecha = document.getElementById("vencimientoInput").value;
+  if (!nuevaFecha) {
+    mostrarAlerta("⚠️ Ingresá una fecha válida");
+    return;
+  }
+  clientes[indexVencimiento].vencimiento = nuevaFecha;
+  cerrarModalVencimiento();
+  actualizarTabla();
+  mostrarAlerta("📅 Vencimiento actualizado");
+}
+
+function cerrarModalVencimiento() {
+  document.getElementById("modalVencimiento").style.display = "none";
+}
+
+function cerrarDatosCliente() {
+  document.getElementById("datosClienteModal").style.display = "none";
+}
+
+function formatearFecha(fechaISO) {
+  const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
+    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const fecha = new Date(fechaISO);
+  const dia = fecha.getDate().toString().padStart(2, '0');
+  const mes = meses[fecha.getMonth()];
+  const año = fecha.getFullYear();
+  return `${dia} de ${mes} de ${año}`;
+}
+
+function calcularDiasRestantes(fecha) {
+  const hoy = new Date();
+  const venc = new Date(fecha);
+  const diff = venc - hoy;
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+}
+
+actualizarTabla();
+</script>
 </body>
 </html>
-
-
-
 
 
