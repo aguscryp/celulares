@@ -12,9 +12,10 @@
       color: #fff;
     }
     header {
-      background: linear-gradient(90deg, #7f00ff, #e100ff);
+      background: linear-gradient(90deg, #7f00ff, #ff00aa);
       padding: 20px;
       text-align: center;
+      box-shadow: 0 0 15px rgba(127, 0, 255, 0.5);
     }
     h1 {
       margin: 0;
@@ -39,19 +40,31 @@
       font-weight: bold;
       float: right;
       margin-bottom: 10px;
+      box-shadow: 0 0 10px rgba(255, 0, 170, 0.5);
     }
     table {
       width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 20px;
+      box-shadow: 0 0 15px rgba(127, 0, 255, 0.3);
+      border-radius: 10px;
+      overflow: hidden;
     }
     th, td {
-      border: 1px solid #7f00ff;
-      padding: 10px;
+      padding: 15px;
       text-align: center;
+      border-bottom: 1px solid rgba(255, 0, 170, 0.2);
+      transition: background-color 0.3s ease;
     }
     th {
-      background-color: #1a1a1a;
+      background: linear-gradient(90deg, #1a1a1a, #2a2a2a);
+      color: #ff00aa;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    tr:hover td {
+      background-color: rgba(127, 0, 255, 0.1);
     }
     .edit-btn {
       background-color: transparent;
@@ -60,6 +73,14 @@
       padding: 5px 10px;
       border-radius: 4px;
       cursor: pointer;
+    }
+    input[type="number"], input[type="date"] {
+      background-color: #0a0a0a;
+      color: #fff;
+      border: 1px solid #7f00ff;
+      border-radius: 4px;
+      padding: 5px;
+      width: 100px;
     }
     .modal {
       display: none;
@@ -125,6 +146,7 @@
           <th>Mi Cliente</th>
           <th>Vencimiento</th>
           <th>Crédito</th>
+          <th>Cuotas</th>
           <th>Acción</th>
         </tr>
       </thead>
@@ -167,11 +189,13 @@
 
       clientes.forEach((cliente, index) => {
         saldo += cliente.credito;
+        const cuotaValor = cliente.cuotas > 0 ? (cliente.credito / cliente.cuotas).toFixed(2) : "-";
         const fila = document.createElement("tr");
         fila.innerHTML = `
           <td>${cliente.nombre}</td>
           <td><input type="date" value="${cliente.vencimiento}" onchange="actualizarVencimiento(${index}, this.value)" /></td>
-          <td>$${cliente.credito}</td>
+          <td><input type="number" value="${cliente.credito}" onchange="actualizarCredito(${index}, this.value)" /></td>
+          <td><input type="number" value="${cliente.cuotas}" onchange="actualizarCuotas(${index}, this.value)" /><br><small>$${cuotaValor} c/u</small></td>
           <td><button class="edit-btn" onclick="verCliente(${index})">Editar</button></td>
         `;
         tabla.appendChild(fila);
@@ -187,6 +211,7 @@
           nombre,
           vencimiento: new Date().toISOString().split("T")[0],
           credito: 0,
+          cuotas: 0,
           detalle: []
         });
         actualizarTabla();
@@ -195,6 +220,16 @@
 
     function actualizarVencimiento(index, nuevaFecha) {
       clientes[index].vencimiento = nuevaFecha;
+    }
+
+    function actualizarCredito(index, nuevoCredito) {
+      clientes[index].credito = parseFloat(nuevoCredito);
+      actualizarTabla();
+    }
+
+    function actualizarCuotas(index, nuevasCuotas) {
+      clientes[index].cuotas = parseInt(nuevasCuotas);
+      actualizarTabla();
     }
 
     function verCliente(index) {
@@ -209,7 +244,7 @@
         fila.innerHTML = `
           <td>${item.fecha}</td>
           <td>$${item.pago}</td>
-          <td>$${item.entregado}</td>
+                    <td>$${item.entregado}</td>
         `;
         detalle.appendChild(fila);
       });
