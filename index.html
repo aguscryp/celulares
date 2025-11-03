@@ -74,12 +74,27 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    input[type="number"], input[type="date"], input[type="text"], textarea {
+    .input-monto {
+      background-color: #0f0f0f;
+      color: #ff00aa;
+      font-weight: bold;
+      text-align: center;
+      border: 1px solid #7f00ff;
+      border-radius: 6px;
+      padding: 10px;
+      box-shadow: inset 0 0 5px rgba(127, 0, 255, 0.3);
+      transition: box-shadow 0.3s ease;
+    }
+    .input-monto:focus {
+      box-shadow: 0 0 10px rgba(127, 0, 255, 0.6);
+      outline: none;
+    }
+    input[type="text"], input[type="date"], textarea {
       background-color: #0a0a0a;
       color: #fff;
       border: 1px solid #7f00ff;
       border-radius: 4px;
-      padding: 5px;
+      padding: 10px;
       width: 100%;
       margin-top: 5px;
     }
@@ -143,7 +158,7 @@
   </style>
 </head>
 <body>
-  <!-- CONTENIDO HTML CONTINÚA EN LA PARTE 2 -->
+  <header><h1>Panel de Clientes - Celulares</h1></header>
   <div class="saldo">Saldo total: $<span id="saldoTotal">0</span></div>
   <div class="container">
     <button class="add-btn" onclick="abrirFormularioCliente()">➕ Agregar Cliente</button>
@@ -161,15 +176,13 @@
     </table>
   </div>
 
-  <!-- Modal Detalle Cliente -->
+  <!-- Modales y formularios -->
   <div class="modal" id="clienteModal">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarModal()">Cerrar</button>
       <h2 id="modalTitulo">Detalle del Cliente</h2>
       <table>
-        <thead>
-          <tr><th>Fecha</th><th>Pago</th><th>Entregado</th></tr>
-        </thead>
+        <thead><tr><th>Fecha</th><th>Pago</th><th>Entregado</th></tr></thead>
         <tbody id="detalleCliente"></tbody>
       </table>
       <div class="input-row">
@@ -181,7 +194,6 @@
     </div>
   </div>
 
-  <!-- Modal Formulario Cliente -->
   <div class="modal" id="formularioCliente">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarFormularioCliente()">Cerrar</button>
@@ -199,7 +211,6 @@
     </div>
   </div>
 
-  <!-- Modal Datos del Cliente -->
   <div class="modal" id="datosClienteModal">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarDatosCliente()">Cerrar</button>
@@ -271,8 +282,8 @@
         fila.innerHTML = `
           <td>${cliente.nombre} <span style="cursor:pointer;" onclick="verDatosCliente(${index})">⚙️</span></td>
           <td>${formatearFecha(cliente.vencimiento)}</td>
-          <td><span style="color:#ff00aa;">$</span><input type="number" value="${cliente.credito}" onchange="actualizarCredito(${index}, this.value)" /></td>
-          <td><span style="color:#ff00aa;">$</span><input type="number" value="${cliente.cuota}" onchange="actualizarCuota(${index}, this.value)" /></td>
+          <td><span style="color:#ff00aa;">$</span><input class="input-monto" type="number" value="${cliente.credito}" onchange="actualizarCredito(${index}, this.value)" /></td>
+          <td><span style="color:#ff00aa;">$</span><input class="input-monto" type="number" value="${cliente.cuota}" onchange="actualizarCuota(${index}, this.value)" /></td>
           <td><button class="edit-btn" onclick="verCliente(${index})">Movimientos</button></td>
         `;
         tabla.appendChild(fila);
@@ -370,7 +381,6 @@
   </script>
 </body>
 </html>
-
 
 
 
