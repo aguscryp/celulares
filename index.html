@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Control de Clientes - Celulares</title>
+  <title>Crédito Personal - Clientes</title>
   <style>
     body {
       margin: 0;
@@ -74,22 +74,20 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    .input-monto {
-      background-color: #0f0f0f;
-      color: #ff00aa;
+    .alerta {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #ff00aa;
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 5px;
       font-weight: bold;
-      text-align: center;
-      border: 1px solid #7f00ff;
-      border-radius: 6px;
-      padding: 10px;
-      box-shadow: inset 0 0 5px rgba(127, 0, 255, 0.3);
-      transition: box-shadow 0.3s ease;
+      display: none;
+      z-index: 2000;
     }
-    .input-monto:focus {
-      box-shadow: 0 0 10px rgba(127, 0, 255, 0.6);
-      outline: none;
-    }
-    input[type="text"], input[type="date"], textarea {
+    input, textarea {
       background-color: #0a0a0a;
       color: #fff;
       border: 1px solid #7f00ff;
@@ -125,11 +123,6 @@
       cursor: pointer;
       border-radius: 4px;
     }
-    .input-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
     .save-mov-btn {
       margin-top: 10px;
       background-color: #7f00ff;
@@ -139,26 +132,10 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    .formulario input, .formulario textarea {
-      margin-bottom: 10px;
-    }
-    .alerta {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #ff00aa;
-      color: #000;
-      padding: 10px 20px;
-      border-radius: 5px;
-      font-weight: bold;
-      display: none;
-      z-index: 2000;
-    }
   </style>
 </head>
 <body>
-  <header><h1>Panel de Clientes - Celulares</h1></header>
+  <header><h1>Panel de Crédito Personal</h1></header>
   <div class="saldo">Saldo total: $<span id="saldoTotal">0</span></div>
   <div class="container">
     <button class="add-btn" onclick="abrirFormularioCliente()">➕ Agregar Cliente</button>
@@ -166,9 +143,8 @@
       <thead>
         <tr>
           <th>Cliente</th>
+          <th>Crédito Personal</th>
           <th>Vencimiento</th>
-          <th>Crédito</th>
-          <th>Cuota</th>
           <th>Acción</th>
         </tr>
       </thead>
@@ -176,24 +152,7 @@
     </table>
   </div>
 
-  <!-- Modales y formularios -->
-  <div class="modal" id="clienteModal">
-    <div class="modal-content">
-      <button class="close-btn" onclick="cerrarModal()">Cerrar</button>
-      <h2 id="modalTitulo">Detalle del Cliente</h2>
-      <table>
-        <thead><tr><th>Fecha</th><th>Pago</th><th>Entregado</th></tr></thead>
-        <tbody id="detalleCliente"></tbody>
-      </table>
-      <div class="input-row">
-        <input type="date" id="fechaInput" />
-        <input type="number" placeholder="Pago" id="pagoInput" />
-        <input type="number" placeholder="Entregado" id="entregadoInput" />
-      </div>
-      <button class="save-mov-btn" onclick="guardarMovimiento()">Guardar Movimiento</button>
-    </div>
-  </div>
-
+  <!-- Formularios y modales -->
   <div class="modal" id="formularioCliente">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarFormularioCliente()">Cerrar</button>
@@ -201,9 +160,9 @@
       <div class="formulario">
         <input type="text" id="nombreInput" placeholder="Nombre y apellido" />
         <input type="text" id="dniInput" placeholder="DNI" />
-        <input type="number" id="creditoInput" placeholder="Crédito total" />
-        <input type="number" id="cuotaInput" placeholder="Valor de la cuota" />
-        <input type="text" id="fechaPagoInput" placeholder="Fecha de pago (ej: 02 de noviembre de 2025)" />
+        <input type="number" id="cuotasInput" placeholder="Cantidad de cuotas" />
+        <input type="number" id="valorCuotaInput" placeholder="Valor de cada cuota" />
+        <input type="date" id="fechaAltaInput" placeholder="Fecha de alta" />
         <input type="text" id="equipoInput" placeholder="Equipo vendido" />
         <textarea id="notaInput" placeholder="Nota adicional"></textarea>
       </div>
@@ -223,7 +182,6 @@
 
   <script>
     let clientes = [];
-    let clienteActual = null;
 
     function mostrarAlerta(mensaje) {
       const alerta = document.getElementById("alerta");
@@ -243,27 +201,28 @@
     function guardarCliente() {
       const nombre = document.getElementById("nombreInput").value.trim();
       const dni = document.getElementById("dniInput").value.trim();
-      const credito = parseFloat(document.getElementById("creditoInput").value);
-      const cuota = parseFloat(document.getElementById("cuotaInput").value);
-      const fechaPago = document.getElementById("fechaPagoInput").value.trim();
+      const cuotas = parseInt(document.getElementById("cuotasInput").value);
+      const valorCuota = parseFloat(document.getElementById("valorCuotaInput").value);
+      const fechaAlta = document.getElementById("fechaAltaInput").value;
       const equipo = document.getElementById("equipoInput").value.trim();
       const nota = document.getElementById("notaInput").value.trim();
 
-      if (!nombre || !dni || isNaN(credito) || isNaN(cuota) || !fechaPago || !equipo) {
+      if (!nombre || !dni || isNaN(cuotas) || isNaN(valorCuota) || !fechaAlta || !equipo) {
         mostrarAlerta("⚠️ Completa todos los campos obligatorios");
         return;
       }
 
+      const totalCredito = cuotas * valorCuota;
+
       clientes.push({
         nombre,
         dni,
-        credito,
-        cuota,
-        fechaPago,
+        cuotas,
+        valorCuota,
+        totalCredito,
+        fechaAlta,
         equipo,
-        nota,
-        vencimiento: new Date().toISOString().split("T")[0],
-        detalle: []
+        nota
       });
 
       cerrarFormularioCliente();
@@ -277,76 +236,25 @@
       let saldo = 0;
 
       clientes.forEach((cliente, index) => {
-        saldo += cliente.credito;
+        saldo += cliente.totalCredito;
+        const vencimiento = calcularVencimiento(cliente.fechaAlta);
         const fila = document.createElement("tr");
         fila.innerHTML = `
           <td>${cliente.nombre} <span style="cursor:pointer;" onclick="verDatosCliente(${index})">⚙️</span></td>
-          <td>${formatearFecha(cliente.vencimiento)}</td>
-          <td><span style="color:#ff00aa;">$</span><input class="input-monto" type="number" value="${cliente.credito}" onchange="actualizarCredito(${index}, this.value)" /></td>
-          <td><span style="color:#ff00aa;">$</span><input class="input-monto" type="number" value="${cliente.cuota}" onchange="actualizarCuota(${index}, this.value)" /></td>
-          <td><button class="edit-btn" onclick="verCliente(${index})">Movimientos</button></td>
+          <td>${cliente.cuotas} de $${cliente.valorCuota.toLocaleString()} → Total: $${cliente.totalCredito.toLocaleString()}</td>
+          <td>${vencimiento}</td>
+          <td><button class="edit-btn" onclick="verDatosCliente(${index})">Ver Datos</button></td>
         `;
         tabla.appendChild(fila);
       });
 
-      document.getElementById("saldoTotal").textContent = saldo;
+      document.getElementById("saldoTotal").textContent = saldo.toLocaleString();
     }
 
-    function actualizarCredito(index, nuevoCredito) {
-      clientes[index].credito = parseFloat(nuevoCredito);
-      actualizarTabla();
-    }
-
-    function actualizarCuota(index, nuevaCuota) {
-      clientes[index].cuota = parseFloat(nuevaCuota);
-      actualizarTabla();
-    }
-
-    function verCliente(index) {
-      clienteActual = index;
-      const cliente = clientes[index];
-      document.getElementById("modalTitulo").textContent = `Detalle de ${cliente.nombre}`;
-      const detalle = document.getElementById("detalleCliente");
-      detalle.innerHTML = "";
-
-      cliente.detalle.forEach(item => {
-        const fila = document.createElement("tr");
-        fila.innerHTML = `
-          <td>${formatearFecha(item.fecha)}</td>
-          <td>$${item.pago}</td>
-          <td>$${item.entregado}</td>
-        `;
-        detalle.appendChild(fila);
-      });
-
-      document.getElementById("clienteModal").style.display = "flex";
-    }
-
-    function cerrarModal() {
-      document.getElementById("clienteModal").style.display = "none";
-    }
-
-    function guardarMovimiento() {
-      const fecha = document.getElementById("fechaInput").value;
-      const pago = parseFloat(document.getElementById("pagoInput").value);
-      const entregado = parseFloat(document.getElementById("entregadoInput").value);
-
-      if (!fecha || isNaN(pago) || isNaN(entregado)) {
-        mostrarAlerta("⚠️ Completa todos los campos del movimiento");
-        return;
-      }
-
-      const cliente = clientes[clienteActual];
-      cliente.detalle.push({ fecha, pago, entregado });
-      cliente.credito += entregado - pago;
-
-      document.getElementById("fechaInput").value = "";
-      document.getElementById("pagoInput").value = "";
-      document.getElementById("entregadoInput").value = "";
-
-      verCliente(clienteActual);
-      actualizarTabla();
-      mostrarAlerta("✅ Movimiento guardado");
+    function calcularVencimiento(fechaAlta) {
+      const fecha = new Date(fechaAlta);
+      fecha.setMonth(fecha.getMonth() + 1);
+      return formatearFecha(fecha.toISOString());
     }
 
     function verDatosCliente(index) {
@@ -354,9 +262,10 @@
       document.getElementById("datosTitulo").textContent = `Datos de ${cliente.nombre}`;
       document.getElementById("datosContenido").innerHTML = `
         <p><strong>DNI:</strong> ${cliente.dni}</p>
-        <p><strong>Fecha de pago:</strong> ${cliente.fechaPago}</p>
         <p><strong>Equipo:</strong> ${cliente.equipo}</p>
         <p><strong>Nota:</strong> ${cliente.nota || "Sin nota"}</p>
+        <p><strong>Fecha de alta:</strong> ${formatearFecha(cliente.fechaAlta)}</p>
+        <p><strong>Próximo vencimiento:</strong> ${calcularVencimiento(cliente.fechaAlta)}</p>
       `;
       document.getElementById("datosClienteModal").style.display = "flex";
     }
@@ -371,7 +280,7 @@
         "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
       ];
       const fecha = new Date(fechaISO);
-            const dia = fecha.getDate().toString().padStart(2, '0');
+      const dia = fecha.getDate().toString().padStart(2, '0');
       const mes = meses[fecha.getMonth()];
       const año = fecha.getFullYear();
       return `${dia} de ${mes} de ${año}`;
@@ -381,6 +290,7 @@
   </script>
 </body>
 </html>
+
 
 
 
