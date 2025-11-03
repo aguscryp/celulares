@@ -25,7 +25,14 @@
       text-align: right;
       padding: 10px 20px;
       font-size: 1.2em;
-      color: #ff00aa;
+      color: #fff;
+      font-weight: bold;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { text-shadow: 0 0 5px #ff00aa; color: #ff00aa; }
+      50% { text-shadow: 0 0 15px #7f00ff; color: #7f00ff; }
+      100% { text-shadow: 0 0 5px #ff00aa; color: #ff00aa; }
     }
     .container {
       padding: 20px;
@@ -152,7 +159,7 @@
     </table>
   </div>
 
-  <!-- Formularios y modales -->
+  <!-- Formulario Cliente -->
   <div class="modal" id="formularioCliente">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarFormularioCliente()">Cerrar</button>
@@ -162,7 +169,7 @@
         <input type="text" id="dniInput" placeholder="DNI" />
         <input type="number" id="cuotasInput" placeholder="Cantidad de cuotas" />
         <input type="number" id="valorCuotaInput" placeholder="Valor de cada cuota" />
-        <input type="date" id="fechaAltaInput" placeholder="Fecha de alta" />
+        <input type="date" id="fechaAltaInput" />
         <input type="text" id="equipoInput" placeholder="Equipo vendido" />
         <textarea id="notaInput" placeholder="Nota adicional"></textarea>
       </div>
@@ -170,11 +177,20 @@
     </div>
   </div>
 
+  <!-- Modal Datos Cliente + Movimientos -->
   <div class="modal" id="datosClienteModal">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarDatosCliente()">Cerrar</button>
       <h2 id="datosTitulo">Datos del Cliente</h2>
       <div id="datosContenido"></div>
+      <h3>Movimientos</h3>
+      <table>
+        <thead><tr><th>Fecha</th><th>Pago</th><th>Entregado</th></tr></thead>
+        <tbody id="detalleCliente"></tbody>
+      </table>
+      <input type="date" id="fechaInput" />
+      <input type="number" placeholder="Pago" id="pagoInput" />
+      <button class="save-mov-btn" onclick="guardarMovimiento()">Registrar Pago</button>
     </div>
   </div>
 
@@ -182,6 +198,7 @@
 
   <script>
     let clientes = [];
+    let clienteActual = null;
 
     function mostrarAlerta(mensaje) {
       const alerta = document.getElementById("alerta");
@@ -200,7 +217,7 @@
 
     function guardarCliente() {
       const nombre = document.getElementById("nombreInput").value.trim();
-      const dni = document.getElementById("dniInput").value.trim();
+      const       dni = document.getElementById("dniInput").value.trim();
       const cuotas = parseInt(document.getElementById("cuotasInput").value);
       const valorCuota = parseFloat(document.getElementById("valorCuotaInput").value);
       const fechaAlta = document.getElementById("fechaAltaInput").value;
@@ -222,7 +239,8 @@
         totalCredito,
         fechaAlta,
         equipo,
-        nota
+        nota,
+        movimientos: []
       });
 
       cerrarFormularioCliente();
@@ -243,7 +261,7 @@
           <td>${cliente.nombre} <span style="cursor:pointer;" onclick="verDatosCliente(${index})">⚙️</span></td>
           <td>${cliente.cuotas} de $${cliente.valorCuota.toLocaleString()} → Total: $${cliente.totalCredito.toLocaleString()}</td>
           <td>${vencimiento}</td>
-          <td><button class="edit-btn" onclick="verDatosCliente(${index})">Ver Datos</button></td>
+          <td><button class="edit-btn" onclick="verDatosCliente(${index})">Movimientos</button></td>
         `;
         tabla.appendChild(fila);
       });
@@ -258,6 +276,7 @@
     }
 
     function verDatosCliente(index) {
+      clienteActual = index;
       const cliente = clientes[index];
       document.getElementById("datosTitulo").textContent = `Datos de ${cliente.nombre}`;
       document.getElementById("datosContenido").innerHTML = `
@@ -267,7 +286,45 @@
         <p><strong>Fecha de alta:</strong> ${formatearFecha(cliente.fechaAlta)}</p>
         <p><strong>Próximo vencimiento:</strong> ${calcularVencimiento(cliente.fechaAlta)}</p>
       `;
+      actualizarMovimientos();
       document.getElementById("datosClienteModal").style.display = "flex";
+    }
+
+    function actualizarMovimientos() {
+      const cliente = clientes[clienteActual];
+      const tbody = document.getElementById("detalleCliente");
+      tbody.innerHTML = "";
+      let entregado = 0;
+
+      cliente.movimientos.forEach(mov => {
+        entregado += mov.pago;
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${formatearFecha(mov.fecha)}</td>
+          <td>$${mov.pago.toLocaleString()}</td>
+          <td>$${entregado.toLocaleString()}</td>
+        `;
+        tbody.appendChild(fila);
+      });
+    }
+
+    function guardarMovimiento() {
+      const fecha = document.getElementById("fechaInput").value;
+      const pago = parseFloat(document.getElementById("pagoInput").value);
+
+      if (!fecha || isNaN(pago)) {
+        mostrarAlerta("⚠️ Ingresá una fecha y un monto válido");
+        return;
+      }
+
+      const cliente = clientes[clienteActual];
+      cliente.movimientos.push({ fecha, pago });
+
+      document.getElementById("fechaInput").value = "";
+      document.getElementById("pagoInput").value = "";
+
+      actualizarMovimientos();
+      mostrarAlerta("✅ Movimiento registrado");
     }
 
     function cerrarDatosCliente() {
