@@ -74,13 +74,14 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    input[type="number"], input[type="date"] {
+    input[type="number"], input[type="date"], input[type="text"], textarea {
       background-color: #0a0a0a;
       color: #fff;
       border: 1px solid #7f00ff;
       border-radius: 4px;
       padding: 5px;
-      width: 100px;
+      width: 100%;
+      margin-top: 5px;
     }
     .modal {
       display: none;
@@ -114,14 +115,6 @@
       gap: 10px;
       margin-top: 10px;
     }
-    .input-row input {
-      flex: 1;
-      padding: 5px;
-      border-radius: 4px;
-      border: 1px solid #7f00ff;
-      background-color: #0a0a0a;
-      color: #fff;
-    }
     .save-mov-btn {
       margin-top: 10px;
       background-color: #7f00ff;
@@ -131,22 +124,36 @@
       border-radius: 4px;
       cursor: pointer;
     }
+    .formulario input, .formulario textarea {
+      margin-bottom: 10px;
+    }
+    .alerta {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #ff00aa;
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-weight: bold;
+      display: none;
+      z-index: 2000;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>📱 CELULARES VENDIDOS</h1>
-  </header>
+  <header><h1>📱 CELULARES VENDIDOS</h1></header>
   <div class="saldo">Saldo total: $<span id="saldoTotal">0</span></div>
   <div class="container">
-    <button class="add-btn" onclick="agregarCliente()">➕ Agregar Cliente</button>
+    <button class="add-btn" onclick="abrirFormularioCliente()">➕ Agregar Cliente</button>
     <table>
       <thead>
         <tr>
-          <th>Mi Cliente</th>
+          <th>Cliente</th>
           <th>Vencimiento</th>
           <th>Crédito</th>
-          <th>Cuotas</th>
+          <th>Cuota</th>
           <th>Acción</th>
         </tr>
       </thead>
@@ -154,18 +161,14 @@
     </table>
   </div>
 
-  <!-- Modal -->
+  <!-- Modal Detalle Cliente -->
   <div class="modal" id="clienteModal">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarModal()">Cerrar</button>
       <h2 id="modalTitulo">Detalle del Cliente</h2>
       <table>
         <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Pago</th>
-            <th>Entregado</th>
-          </tr>
+          <tr><th>Fecha</th><th>Pago</th><th>Entregado</th></tr>
         </thead>
         <tbody id="detalleCliente"></tbody>
       </table>
@@ -178,9 +181,73 @@
     </div>
   </div>
 
+  <!-- Modal Formulario Cliente -->
+  <div class="modal" id="formularioCliente">
+    <div class="modal-content">
+      <button class="close-btn" onclick="cerrarFormularioCliente()">Cerrar</button>
+      <h2>Agregar Cliente</h2>
+      <div class="formulario">
+        <input type="text" id="nombreInput" placeholder="Nombre y apellido" />
+        <input type="text" id="dniInput" placeholder="DNI" />
+        <input type="number" id="creditoInput" placeholder="Crédito total" />
+        <input type="number" id="cuotaInput" placeholder="Valor de la cuota" />
+        <input type="text" id="fechaPagoInput" placeholder="Fecha de pago (ej: 02 de noviembre de 2025)" />
+        <input type="text" id="equipoInput" placeholder="Equipo vendido" />
+        <textarea id="notaInput" placeholder="Nota adicional"></textarea>
+      </div>
+      <button class="save-mov-btn" onclick="guardarCliente()">Guardar Cliente</button>
+    </div>
+  </div>
+
+  <div id="alerta" class="alerta"></div>
+
   <script>
     let clientes = [];
     let clienteActual = null;
+
+    function mostrarAlerta(mensaje) {
+      const alerta = document.getElementById("alerta");
+      alerta.textContent = mensaje;
+      alerta.style.display = "block";
+      setTimeout(() => alerta.style.display = "none", 3000);
+    }
+
+    function abrirFormularioCliente() {
+      document.getElementById("formularioCliente").style.display = "flex";
+    }
+
+    function cerrarFormularioCliente() {
+      document.getElementById("formularioCliente").style.display = "none";
+    }
+
+    function guardarCliente() {
+      const nombre = document.getElementById("nombreInput").value.trim();
+      const dni = document.getElementById("dniInput").value.trim();
+      const credito = parseFloat(document.getElementById("creditoInput").value);
+      const cuota = parseFloat(document.getElementById("cuotaInput").value);
+      const fechaPago = document.getElementById("fechaPagoInput").value.trim();
+      const equipo = document.getElementById("equipoInput").value.trim();
+      const nota = document.getElementById("notaInput").value.trim();      if (!nombre || !dni || isNaN(credito) || isNaN(cuota) || !fechaPago || !equipo) {
+        mostrarAlerta("⚠️ Completa todos los campos obligatorios");
+        return;
+      }
+
+      clientes.push({
+        nombre,
+        dni,
+        credito,
+        cuota,
+        fechaPago,
+        equipo,
+        nota,
+        vencimiento: new Date().toISOString().split("T")[0],
+        detalle: []
+      });
+
+      cerrarFormularioCliente();
+      actualizarTabla();
+      mostrarAlerta("✅ Cliente agregado correctamente");
+    }
 
     function actualizarTabla() {
       const tabla = document.getElementById("clientesTabla");
@@ -189,13 +256,12 @@
 
       clientes.forEach((cliente, index) => {
         saldo += cliente.credito;
-        const cuotaValor = cliente.cuotas > 0 ? (cliente.credito / cliente.cuotas).toFixed(2) : "-";
         const fila = document.createElement("tr");
         fila.innerHTML = `
           <td>${cliente.nombre}</td>
-          <td><input type="date" value="${cliente.vencimiento}" onchange="actualizarVencimiento(${index}, this.value)" /></td>
+          <td>${formatearFecha(cliente.vencimiento)}</td>
           <td><input type="number" value="${cliente.credito}" onchange="actualizarCredito(${index}, this.value)" /></td>
-          <td><input type="number" value="${cliente.cuotas}" onchange="actualizarCuotas(${index}, this.value)" /><br><small>$${cuotaValor} c/u</small></td>
+          <td><input type="number" value="${cliente.cuota}" onchange="actualizarCuota(${index}, this.value)" /></td>
           <td><button class="edit-btn" onclick="verCliente(${index})">Editar</button></td>
         `;
         tabla.appendChild(fila);
@@ -204,31 +270,13 @@
       document.getElementById("saldoTotal").textContent = saldo;
     }
 
-    function agregarCliente() {
-      const nombre = prompt("Nombre del cliente:");
-      if (nombre) {
-        clientes.push({
-          nombre,
-          vencimiento: new Date().toISOString().split("T")[0],
-          credito: 0,
-          cuotas: 0,
-          detalle: []
-        });
-        actualizarTabla();
-      }
-    }
-
-    function actualizarVencimiento(index, nuevaFecha) {
-      clientes[index].vencimiento = nuevaFecha;
-    }
-
     function actualizarCredito(index, nuevoCredito) {
       clientes[index].credito = parseFloat(nuevoCredito);
       actualizarTabla();
     }
 
-    function actualizarCuotas(index, nuevasCuotas) {
-      clientes[index].cuotas = parseInt(nuevasCuotas);
+    function actualizarCuota(index, nuevaCuota) {
+      clientes[index].cuota = parseFloat(nuevaCuota);
       actualizarTabla();
     }
 
@@ -242,9 +290,9 @@
       cliente.detalle.forEach(item => {
         const fila = document.createElement("tr");
         fila.innerHTML = `
-          <td>${item.fecha}</td>
+          <td>${formatearFecha(item.fecha)}</td>
           <td>$${item.pago}</td>
-                    <td>$${item.entregado}</td>
+          <td>$${item.entregado}</td>
         `;
         detalle.appendChild(fila);
       });
@@ -262,7 +310,7 @@
       const entregado = parseFloat(document.getElementById("entregadoInput").value);
 
       if (!fecha || isNaN(pago) || isNaN(entregado)) {
-        alert("Completa todos los campos");
+        mostrarAlerta("⚠️ Completa todos los campos del movimiento");
         return;
       }
 
@@ -276,11 +324,26 @@
 
       verCliente(clienteActual);
       actualizarTabla();
+      mostrarAlerta("✅ Movimiento guardado");
+    }
+
+    function formatearFecha(fechaISO) {
+      const meses = [
+        "enero", "febrero", "marzo", "abril", "mayo", "junio",
+        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+      ];
+      const fecha = new Date(fechaISO);
+      const dia = fecha.getDate().toString().padStart(2, '0');
+      const mes = meses[fecha.getMonth()];
+      const año = fecha.getFullYear();
+      return `${dia} de ${mes} de ${año}`;
     }
 
     actualizarTabla();
   </script>
 </body>
 </html>
+
+
 
 
