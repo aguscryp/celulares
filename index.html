@@ -1,1 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control de Clientes - Celulares</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Courier New', monospace;
+      background-color: #000;
+      color: #fff;
+    }
+    header {
+      padding: 20px;
+      text-align: center;
+      background-color: #111;
+      border-bottom: 1px solid #00ff00;
+    }
+    h1 {
+      color: #00ff00;
+      margin: 0;
+    }
+    .saldo {
+      text-align: right;
+      padding: 10px 20px;
+      font-size: 1.2em;
+      color: #00ff00;
+    }
+    .container {
+      padding: 20px;
+    }
+    .add-btn {
+      background-color: #00ff00;
+      color: #000;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-weight: bold;
+      float: right;
+      margin-bottom: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #00ff00;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #111;
+    }
+    .edit-btn {
+      background-color: transparent;
+      border: 1px solid #00ff00;
+      color: #00ff00;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background-color: #111;
+      padding: 20px;
+      border: 1px solid #00ff00;
+      width: 90%;
+      max-width: 600px;
+    }
+    .close-btn {
+      float: right;
+      background-color: #00ff00;
+      color: #000;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CELULARES VENDIDOS</h1>
+  </header>
+  <div class="saldo">Saldo total: $<span id="saldoTotal">0</span></div>
+  <div class="container">
+    <button class="add-btn">➕ Agregar Cliente</button>
+    <table>
+      <thead>
+        <tr>
+          <th>Mi Cliente</th>
+          <th>Vencimiento</th>
+          <th>Crédito</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody id="clientesTabla">
+        <!-- Clientes se insertan aquí -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="clienteModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="cerrarModal()">Cerrar</button>
+      <h2>Detalle del Cliente</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Pago</th>
+            <th>Entregado</th>
+          </tr>
+        </thead>
+        <tbody id="detalleCliente">
+          <!-- Detalles se insertan aquí -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const clientes = [
+      { nombre: "Juan Pérez", vencimiento: "2025-11-10", credito: 15000, detalle: [] },
+      { nombre: "Ana Gómez", vencimiento: "2025-11-15", credito: 20000, detalle: [] },
+      { nombre: "Carlos Ruiz", vencimiento: "2025-11-20", credito: 10000, detalle: [] },
+    ];
+
+    function actualizarTabla() {
+      const tabla = document.getElementById("clientesTabla");
+      tabla.innerHTML = "";
+      let saldo = 0;
+
+      clientes.forEach((cliente, index) => {
+        saldo += cliente.credito;
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${cliente.nombre}</td>
+          <td><input type="date" value="${cliente.vencimiento}" /></td>
+          <td>$${cliente.credito}</td>
+          <td><button class="edit-btn" onclick="verCliente(${index})">Editar</button></td>
+        `;
+        tabla.appendChild(fila);
+      });
+
+      document.getElementById("saldoTotal").textContent = saldo;
+    }
+
+    function verCliente(index) {
+      const modal = document.getElementById("clienteModal");
+      const detalle = document.getElementById("detalleCliente");
+      detalle.innerHTML = "";
+
+      const cliente = clientes[index];
+      cliente.detalle.forEach(item => {
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${item.fecha}</td>
+          <td>$${item.pago}</td>
+          <td>$${item.entregado}</td>
+        `;
+        detalle.appendChild(fila);
+      });
+
+      modal.style.display = "flex";
+    }
+
+    function cerrarModal() {
+      document.getElementById("clienteModal").style.display = "none";
+    }
+
+    actualizarTabla();
+  </script>
+</body>
+</html>
 
