@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gestión de Clientes</title>
+  <title>Crédito Personal - Clientes</title>
   <style>
     body {
       margin: 0;
@@ -33,17 +33,56 @@
       50% { color: #7f00ff; text-shadow: 0 0 15px #7f00ff; }
       100% { color: #ff00aa; text-shadow: 0 0 5px #ff00aa; }
     }
+    .container {
+      padding: 20px;
+    }
+    .add-btn {
+      background: linear-gradient(90deg, #ff00aa, #7f00ff);
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      float: right;
+      margin-bottom: 10px;
+      box-shadow: 0 0 10px rgba(255, 0, 170, 0.5);
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 20px;
+      box-shadow: 0 0 15px rgba(127, 0, 255, 0.3);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 15px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255, 0, 170, 0.2);
+      transition: background-color 0.3s ease;
+    }
+    th {
+      background: linear-gradient(90deg, #1a1a1a, #2a2a2a);
+      color: #ff00aa;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    tr:hover td {
+      background-color: rgba(127, 0, 255, 0.1);
+    }
     .etiqueta-pagado {
       padding: 4px 10px;
       border-radius: 20px;
       font-size: 0.9em;
       font-weight: bold;
       margin-left: 10px;
-      animation: palpitar 2.5s infinite ease-in-out;
     }
     .pagado-incompleto {
       background-color: #ff0033;
       color: #fff;
+      animation: palpitar 2.5s infinite ease-in-out;
     }
     .pagado-completo {
       background-color: #00cc66;
@@ -63,12 +102,7 @@
       font-size: 0.9em;
       font-weight: bold;
       margin-left: 10px;
-      animation: palpitar-socio 2.5s infinite ease-in-out;
-    }
-    @keyframes palpitar-socio {
-      0% { background-color: #ff0033; }
-      50% { background-color: #990022; }
-      100% { background-color: #ff0033; }
+      animation: palpitar 2.5s infinite ease-in-out;
     }
     .etiqueta-independiente {
       background-color: #00c2ff;
@@ -88,7 +122,7 @@
   </style>
 </head>
 <body>
-  <header><h1>Gestión de Clientes</h1></header>
+  <header><h1>Panel de Crédito Personal</h1></header>
   <div class="saldo">Saldo total: $<span id="saldoTotal">0</span></div>
   <div class="container">
     <button class="add-btn" onclick="abrirFormularioCliente()">➕ Agregar Cliente</button>
@@ -104,91 +138,90 @@
       <tbody id="clientesTabla"></tbody>
     </table>
   </div>
+<!-- Formulario para agregar cliente -->
+<div class="modal" id="formularioCliente">
+  <div class="modal-content">
+    <button class="close-btn" onclick="cerrarFormularioCliente()">Cerrar</button>
+    <h2>Agregar Cliente</h2>
+    <input type="text" id="nombreInput" placeholder="Nombre y apellido" />
+    <input type="text" id="dniInput" placeholder="DNI" />
+    <input type="number" id="cuotasInput" placeholder="Cantidad de cuotas" />
+    <input type="number" id="valorCuotaInput" placeholder="Valor de cada cuota" />
+    <input type="text" id="equipoInput" placeholder="Equipo vendido" />
 
-  <!-- Formulario para agregar cliente -->
-  <div class="modal" id="formularioCliente">
-    <div class="modal-content">
-      <button class="close-btn" onclick="cerrarFormularioCliente()">Cerrar</button>
-      <h2>Agregar Cliente</h2>
-      <input type="text" id="nombreInput" placeholder="Nombre y apellido" />
-      <input type="text" id="dniInput" placeholder="DNI" />
-      <input type="number" id="cuotasInput" placeholder="Cantidad de cuotas" />
-      <input type="number" id="valorCuotaInput" placeholder="Valor de cada cuota" />
-      <input type="text" id="equipoInput" placeholder="Equipo vendido" />
-
-      <label>Vencimiento:</label>
-      <div style="display:flex; gap:10px;">
-        <select id="diaVencimiento">
-          <option value="">Día</option>
-          ${[...Array(31)].map((_, i) => `<option value="${i+1}">${i+1}</option>`).join('')}
-        </select>
-        <select id="mesVencimiento">
-          <option value="">Mes</option>
-          <option value="enero">Enero</option>
-          <option value="febrero">Febrero</option>
-          <option value="marzo">Marzo</option>
-          <option value="abril">Abril</option>
-          <option value="mayo">Mayo</option>
-          <option value="junio">Junio</option>
-          <option value="julio">Julio</option>
-          <option value="agosto">Agosto</option>
-          <option value="septiembre">Septiembre</option>
-          <option value="octubre">Octubre</option>
-          <option value="noviembre">Noviembre</option>
-          <option value="diciembre">Diciembre</option>
-        </select>
-        <input type="number" id="anioVencimiento" placeholder="Año" min="2020" max="2035" />
-      </div>
-
-      <label>Socio:</label>
-      <select id="socioSelect" onchange="mostrarCampoNuevoSocio()">
-        <option value="Independiente">Independiente</option>
-        <option value="Mario Castro">Mario Castro</option>
-        <option value="Juan Pérez">Juan Pérez</option>
-        <option value="nuevo">Agregar nuevo socio</option>
+    <label>Vencimiento:</label>
+    <div style="display:flex; gap:10px;">
+      <select id="diaVencimiento">
+        <option value="">Día</option>
+        ${[...Array(31)].map((_, i) => `<option value="${i+1}">${i+1}</option>`).join('')}
       </select>
-      <input type="text" id="nuevoSocioInput" placeholder="Nombre del nuevo socio" style="display:none;" />
-
-      <button class="save-mov-btn" onclick="guardarCliente()">Guardar Cliente</button>
+      <select id="mesVencimiento">
+        <option value="">Mes</option>
+        <option value="enero">Enero</option>
+        <option value="febrero">Febrero</option>
+        <option value="marzo">Marzo</option>
+        <option value="abril">Abril</option>
+        <option value="mayo">Mayo</option>
+        <option value="junio">Junio</option>
+        <option value="julio">Julio</option>
+        <option value="agosto">Agosto</option>
+        <option value="septiembre">Septiembre</option>
+        <option value="octubre">Octubre</option>
+        <option value="noviembre">Noviembre</option>
+        <option value="diciembre">Diciembre</option>
+      </select>
+      <input type="number" id="anioVencimiento" placeholder="Año" min="2020" max="2035" />
     </div>
-  </div>
 
-  <!-- Modal para editar vencimiento -->
-  <div class="modal" id="modalVencimiento">
-    <div class="modal-content">
-      <button class="close-btn" onclick="cerrarModalVencimiento()">Cerrar</button>
-      <h3>Editar Vencimiento</h3>
-      <div style="display:flex; gap:10px;">
-        <select id="editDiaVencimiento">
-          <option value="">Día</option>
-          ${[...Array(31)].map((_, i) => `<option value="${i+1}">${i+1}</option>`).join('')}
-        </select>
-        <select id="editMesVencimiento">
-          <option value="">Mes</option>
-          <option value="enero">Enero</option>
-          <option value="febrero">Febrero</option>
-          <option value="marzo">Marzo</option>
-          <option value="abril">Abril</option>
-          <option value="mayo">Mayo</option>
-          <option value="junio">Junio</option>
-          <option value="julio">Julio</option>
-          <option value="agosto">Agosto</option>
-          <option value="septiembre">Septiembre</option>
-          <option value="octubre">Octubre</option>
-          <option value="noviembre">Noviembre</option>
-          <option value="diciembre">Diciembre</option>
-        </select>
-        <input type="number" id="editAnioVencimiento" placeholder="Año" min="2020" max="2035" />
-      </div>
-      <button class="save-mov-btn" onclick="guardarVencimiento()">Guardar</button>
-    </div>
+    <label>Socio:</label>
+    <select id="socioSelect" onchange="mostrarCampoNuevoSocio()">
+      <option value="Independiente">Independiente</option>
+      <option value="Mario Castro">Mario Castro</option>
+      <option value="Juan Pérez">Juan Pérez</option>
+      <option value="nuevo">Agregar nuevo socio</option>
+    </select>
+    <input type="text" id="nuevoSocioInput" placeholder="Nombre del nuevo socio" style="display:none;" />
+
+    <textarea id="notaInput" placeholder="Nota adicional"></textarea>
+    <button class="save-mov-btn" onclick="guardarCliente()">Guardar Cliente</button>
   </div>
+</div>
+
+<!-- Modal para editar teléfono -->
+<div class="modal" id="modalTelefono">
+  <div class="modal-content">
+    <button class="close-btn" onclick="cerrarModalTelefono()">Cerrar</button>
+    <h3>Editar Teléfono</h3>
+    <input type="text" id="telefonoInput" placeholder="Número de teléfono" />
+    <button class="save-mov-btn" onclick="guardarTelefono()">Guardar</button>
+  </div>
+</div>
+
+<!-- Modal para editar vencimiento -->
+<div class="modal" id="modalVencimiento">
+  <div class="modal-content">
+    <button class="close-btn" onclick="cerrarModalVencimiento()">Cerrar</button>
+    <h3>Editar Vencimiento</h3>
+    <input type="text" id="vencimientoInput" placeholder="Ej: 23 de noviembre de 2025" />
+    <button class="save-mov-btn" onclick="guardarVencimiento()">Guardar</button>
+  </div>
+</div>
+
+<div id="alerta" class="alerta"></div>
 <script>
 let clientes = [];
-let clienteEditando = null;
+let indexTelefono = null;
+let indexVencimiento = null;
+
+function mostrarAlerta(mensaje) {
+  const alerta = document.getElementById("alerta");
+  alerta.textContent = mensaje;
+  alerta.style.display = "block";
+  setTimeout(() => alerta.style.display = "none", 3000);
+}
 
 function abrirFormularioCliente() {
-  document.getElementById("formularioCliente").style.display = "block";
+  document.getElementById("formularioCliente").style.display = "flex";
 }
 
 function cerrarFormularioCliente() {
@@ -202,11 +235,12 @@ function mostrarCampoNuevoSocio() {
 }
 
 function guardarCliente() {
-  const nombre = document.getElementById("nombreInput").value;
-  const dni = document.getElementById("dniInput").value;
+  const nombre = document.getElementById("nombreInput").value.trim();
+  const dni = document.getElementById("dniInput").value.trim();
   const cuotas = parseInt(document.getElementById("cuotasInput").value);
-  const valorCuota = parseInt(document.getElementById("valorCuotaInput").value);
-  const equipo = document.getElementById("equipoInput").value;
+  const valorCuota = parseFloat(document.getElementById("valorCuotaInput").value);
+  const equipo = document.getElementById("equipoInput").value.trim();
+  const nota = document.getElementById("notaInput").value.trim();
 
   const dia = document.getElementById("diaVencimiento").value;
   const mes = document.getElementById("mesVencimiento").value;
@@ -218,30 +252,40 @@ function guardarCliente() {
     socio = document.getElementById("nuevoSocioInput").value || "Independiente";
   }
 
-  const cliente = {
+  if (!nombre || !dni || isNaN(cuotas) || isNaN(valorCuota) || !equipo || !dia || !mes || !anio) {
+    mostrarAlerta("⚠️ Completa todos los campos obligatorios");
+    return;
+  }
+
+  const totalCredito = cuotas * valorCuota;
+
+  clientes.push({
     nombre,
     dni,
     cuotas,
     valorCuota,
-    totalCredito: cuotas * valorCuota,
+    totalCredito,
     equipo,
+    nota,
+    telefono: "",
     vencimiento,
     socio,
-    telefono: "",
     movimientos: []
-  };
+  });
 
-  clientes.push(cliente);
   cerrarFormularioCliente();
   actualizarTabla();
+  mostrarAlerta("✅ Cliente agregado correctamente");
 }
 
 function actualizarTabla() {
   const tabla = document.getElementById("clientesTabla");
   tabla.innerHTML = "";
-  let saldoTotal = 0;
+  let saldo = 0;
 
   clientes.forEach((cliente, index) => {
+    saldo += cliente.totalCredito;
+    const diasRestantes = calcularDiasRestantes(cliente.vencimiento);
     const totalPagado = cliente.movimientos.reduce((acc, m) => acc + m.pago, 0);
     const pagadoClass = totalPagado >= cliente.totalCredito ? "pagado-completo" : "pagado-incompleto";
 
@@ -251,72 +295,89 @@ function actualizarTabla() {
       <td>${cliente.cuotas} de $${cliente.valorCuota.toLocaleString()} → Total: $${cliente.totalCredito.toLocaleString()}
         <span class="etiqueta-pagado ${pagadoClass}">Pagado: $${totalPagado.toLocaleString()}</span>
       </td>
-      <td>${cliente.vencimiento} <span style="cursor:pointer;" onclick="editarVencimiento(${index})">✏️</span></td>
-      <td>${cliente.telefono || '<span style="cursor:pointer;" onclick="editarTelefono('+index+')">✏️</span>'}</td>
+      <td>
+        ${cliente.vencimiento}
+        <span style="cursor:pointer;" onclick="editarVencimiento(${index})">✏️</span><br>
+        <small>Faltan ${diasRestantes} días</small>
+      </td>
+      <td>
+        ${cliente.telefono || ""}
+        <span style="cursor:pointer;" onclick="editarTelefono(${index})">✏️</span>
+      </td>
     `;
     tabla.appendChild(fila);
-    saldoTotal += totalPagado;
   });
 
-  document.getElementById("saldoTotal").textContent = saldoTotal.toLocaleString();
+  document.getElementById("saldoTotal").textContent = saldo.toLocaleString();
 }
 
 function verDatosCliente(index) {
   const cliente = clientes[index];
-  const modal = document.createElement("div");
-  modal.className = "modal";
-  modal.innerHTML = `
-    <div class="modal-content">
-      <button class="close-btn" onclick="this.parentElement.parentElement.remove()">Cerrar</button>
-      <h3>${cliente.nombre}</h3>
-      <p><strong>DNI:</strong> ${cliente.dni}</p>
-      <p><strong>Equipo:</strong> ${cliente.equipo}
-        ${cliente.socio === "Independiente"
-          ? '<span class="etiqueta-independiente">Independiente</span>'
-          : '<span class="etiqueta-socio">Socio: ' + cliente.socio + '</span>'}
-        <span style="cursor:pointer;" onclick="editarSocio(${index})">✏️</span>
-      </p>
-      <p><strong>Vencimiento:</strong> ${cliente.vencimiento}</p>
-      <p><strong>Teléfono:</strong> ${cliente.telefono || 'No registrado'}</p>
-    </div>
-  `;
-  document.body.appendChild(modal);
+  alert(
+    `Nombre: ${cliente.nombre}\nDNI: ${cliente.dni}\nEquipo: ${cliente.equipo}\n` +
+    (cliente.socio === "Independiente"
+      ? "Independiente"
+      : "Socio: " + cliente.socio)
+  );
 }
 
 function editarTelefono(index) {
-  const nuevoTel = prompt("Ingresá el número de teléfono:");
-  if (nuevoTel) {
-    clientes[index].telefono = nuevoTel;
-    actualizarTabla();
-  }
+  indexTelefono = index;
+  document.getElementById("telefonoInput").value = clientes[index].telefono || "";
+  document.getElementById("modalTelefono").style.display = "flex";
+}
+
+function guardarTelefono() {
+  const nuevoTelefono = document.getElementById("telefonoInput").value.trim();
+  clientes[indexTelefono].telefono = nuevoTelefono;
+  cerrarModalTelefono();
+  actualizarTabla();
+  mostrarAlerta("📞 Teléfono actualizado");
+}
+
+function cerrarModalTelefono() {
+  document.getElementById("modalTelefono").style.display = "none";
 }
 
 function editarVencimiento(index) {
-  clienteEditando = index;
-  document.getElementById("modalVencimiento").style.display = "block";
+  indexVencimiento = index;
+  document.getElementById("vencimientoInput").value = clientes[index].vencimiento;
+  document.getElementById("modalVencimiento").style.display = "flex";
+}
+
+function guardarVencimiento() {
+  const nuevaFecha = document.getElementById("vencimientoInput").value.trim();
+  if (!nuevaFecha) {
+    mostrarAlerta("⚠️ Ingresá una fecha válida");
+    return;
+  }
+  clientes[indexVencimiento].vencimiento = nuevaFecha;
+  cerrarModalVencimiento();
+  actualizarTabla();
+  mostrarAlerta("📅 Vencimiento actualizado");
 }
 
 function cerrarModalVencimiento() {
   document.getElementById("modalVencimiento").style.display = "none";
 }
 
-function guardarVencimiento() {
-  const dia = document.getElementById("editDiaVencimiento").value;
-  const mes = document.getElementById("editMesVencimiento").value;
-  const anio = document.getElementById("editAnioVencimiento").value;
-  const nuevaFecha = `${dia} de ${mes} de ${anio}`;
-  clientes[clienteEditando].vencimiento = nuevaFecha;
-  cerrarModalVencimiento();
-  actualizarTabla();
+function calcularDiasRestantes(fechaTexto) {
+  const partes = fechaTexto.split(" de ");
+  if (partes.length !== 3) return 0;
+  const dia = parseInt(partes[0]);
+  const mesTexto = partes[1].toLowerCase();
+  const año = parseInt(partes[2]);
+  const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const mes = meses.indexOf(mesTexto);
+  if (mes === -1) return 0;
+  const fecha = new Date(año, mes, dia);
+  const hoy = new Date();
+  const diff = fecha - hoy;
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
-function editarSocio(index) {
-  const nuevoSocio = prompt("Ingresá el nombre del socio o escribí 'Independiente':");
-  if (nuevoSocio) {
-    clientes[index].socio = nuevoSocio;
-    actualizarTabla();
-  }
-}
+actualizarTabla();
 </script>
 </body>
 </html>
+
