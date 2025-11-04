@@ -188,6 +188,59 @@
       z-index: 10;
       text-align: center;
     }
+
+    .overlay-carga {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 3000;
+    }
+
+    .spinner {
+      border: 6px solid #ccc;
+      border-top: 6px solid #ff00aa;
+      border-radius: 50%;
+      width: 50px; height: 50px;
+      animation: girar 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes girar {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .barra-progreso {
+      width: 80%;
+      height: 10px;
+      background: #444;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progreso {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #ff00aa, #7f00ff);
+      animation: avanzar 2s forwards;
+    }
+
+    @keyframes avanzar {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+
+    .mensaje-carga {
+      color: #fff;
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -195,6 +248,7 @@
   <main>
     <div class="saldo">Saldo total: $<span id="saldoTotal">0</span></div>
     <div class="container">
+      <input type="text" id="buscadorDNI" placeholder="🔍 Buscar por DNI..." oninput="filtrarClientes()" />
       <button class="add-btn" onclick="abrirFormularioCliente()">➕ Agregar Cliente</button>
       <table>
         <thead>
@@ -210,8 +264,11 @@
     </div>
   </main>
 
-  <!-- MODALES -->
-  <!-- [Todos los modales originales están aquí sin cambios] -->
+  <div id="overlayCarga" class="overlay-carga">
+    <div class="spinner"></div>
+    <div class="barra-progreso"><div class="progreso"></div></div>
+    <div class="mensaje-carga">Guardando datos...</div>
+  </div>
 
   <div id="alerta" class="alerta"></div>
 
@@ -229,47 +286,109 @@
       setTimeout(() => alerta.style.display = "none", 3000);
     }
 
+    function mostrarCarga(callback) {
+      const overlay = document.getElementById("overlayCarga");
+      const barra = overlay.querySelector(".progreso");
+      barra.style.width = "0%";
+      overlay.style.display = "flex";
+      barra.style.animation = "avanzar 2s forwards";
+      setTimeout(() => {
+        overlay.style.display = "none";
+        callback();
+      }, 2000);
+    }
+
     function abrirFormularioCliente() {
-      document.getElementById("formularioCliente").style.display = "flex";
+      document.getElementById("formularioCliente")?.remove(); // Limpieza previa si ya existe
+      const modal = document.createElement("div");
+      modal.id = "formularioCliente";
+      modal.className = "modal";
+      modal.style.display = "flex";
+      modal.innerHTML = `
+        <div class="modal-content">
+          <h2>Nuevo Cliente</h2>
+          <input id="nombreInput" placeholder="Nombre completo" />
+          <input id="dniInput" placeholder="DNI" />
+          <input id="cuotasInput" type="number" placeholder="Cantidad de cuotas" />
+          <input id="valorCuotaInput" type="number" placeholder="Valor de cada cuota" />
+          <input id="fechaAltaInput" type="date" />
+          <input id="equipoInput" placeholder="Producto entregado" />
+          <textarea id="notaInput" placeholder="Nota (opcional)"></textarea>
+          <button class="add-btn" onclick="guardarCliente()">Guardar Cliente</button>
+          <button class="close-btn" onclick="cerrarFormularioCliente()">Cancelar</button>
+        </div>`;
+      document.body.appendChild(modal);
     }
 
     function cerrarFormularioCliente() {
-      document.getElementById("formularioCliente").style.display = "none";
+      document.getElementById("formularioCliente")?.remove();
     }
 
     function guardarCliente() {
-      const nombre = document.getElementById("nombreInput").value.trim();
-      const dni = document.getElementById("dniInput").value.trim();
-      const cuotas = parseInt(document.getElementById("cuotasInput").value);
-      const valorCuota = parseFloat(document.getElementById("valorCuotaInput").value);
-      const fechaAlta = document.getElementById("fechaAltaInput").value;
-      const equipo = document.getElementById("equipoInput").value.trim();
-      const nota = document.getElementById("notaInput").value.trim();
+      mostrarCarga(() => {
+        const nombre = document.getElementById("nombreInput").value.trim();
+        const dni = document.getElementById("dniInput").value.trim();
+        const cuotas = parseInt(document.getElementById("cuotasInput").value);
+        const valorCuota = parseFloat(document.getElementById("valorCuotaInput").value);
+        const fechaAlta = document.getElementById("fechaAltaInput").value;
+        const equipo = document.getElementById("equipoInput").value.trim();
+        const nota = document.getElementById("notaInput").value.trim();
 
-      if (!nombre || !dni || isNaN(cuotas) || isNaN(valorCuota) || !fechaAlta || !equipo) {
-        mostrarAlerta("⚠️ Completa todos los campos obligatorios");
-        return;
-      }
+        if (!nombre || !dni || isNaN(cuotas) || isNaN(valorCuota) || !fechaAlta || !equipo) {
+          mostrarAlerta("⚠️ Completa todos los campos obligatorios");
+          return;
+        }
 
-      const totalCredito = cuotas * valorCuota;
+        const totalCredito = cuotas * valorCuota;
 
-      clientes.push({
-        nombre,
-        dni,
-        cuotas,
-        valorCuota,
-        totalCredito,
-        fechaAlta,
-        equipo,
-        nota,
-        telefono: "",
-        vencimiento: fechaAlta,
-        movimientos: []
+        clientes.push({
+          nombre,
+          dni,
+          cuotas,
+          valorCuota,
+          totalCredito,
+          fechaAlta,
+          equipo,
+          nota,
+          telefono: "",
+          vencimiento: fechaAlta,
+          movimientos: []
+        });
+
+        cerrarFormularioCliente();
+        actualizarTabla();
+        mostrarAlerta("✅ Cliente agregado correctamente");
       });
+    }
 
-      cerrarFormularioCliente();
-      actualizarTabla();
-      mostrarAlerta("✅ Cliente agregado correctamente");
+    function guardarMovimiento() {
+      mostrarCarga(() => {
+        const fecha = document.getElementById("fechaInput").value;
+        const pago = parseFloat(document.getElementById("pagoInput").value);
+
+        if (!fecha || isNaN(pago)) {
+          mostrarAlerta("⚠️ Ingresá una fecha y un monto válido");
+          return;
+        }
+
+        const cliente = clientes[clienteActual];
+        cliente.movimientos.push({ fecha, pago });
+
+        document.getElementById("fechaInput").value = "";
+        document.getElementById("pagoInput").value = "";
+
+        actualizarMovimientos();
+        mostrarAlerta("✅ Movimiento registrado");
+      });
+    }
+
+    function filtrarClientes() {
+      const filtro = document.getElementById("buscadorDNI").value.toLowerCase();
+      const filas = document.querySelectorAll("#clientesTabla tr");
+      filas.forEach(fila => {
+        const dni = fila.getAttribute("data-dni") || "";
+        fila.style.display = dni.includes(filtro) ? "" : "none";
+      });
     }
 
     function actualizarTabla() {
@@ -282,7 +401,7 @@
         const pagadoB = b.movimientos.reduce((acc, m) => acc + m.pago, 0);
         const terminadoA = pagadoA >= a.totalCredito;
         const terminadoB = pagadoB >= b.totalCredito;
-                return terminadoA - terminadoB;
+        return terminadoA - terminadoB;
       });
 
       clientesOrdenados.forEach((cliente, indexOrdenado) => {
@@ -291,10 +410,11 @@
         const vencimiento = formatearFecha(cliente.vencimiento);
         const diasRestantes = calcularDiasRestantes(cliente.vencimiento);
         const totalPagado = cliente.movimientos.reduce((acc, m) => acc + m.pago, 0);
-        const vencido = calcularDiasRestantes(cliente.vencimiento) <= 0;
+        const vencido = diasRestantes <= 0;
         const creditoTerminado = totalPagado >= cliente.totalCredito;
 
         const fila = document.createElement("tr");
+        fila.setAttribute("data-dni", cliente.dni.toLowerCase());
         fila.innerHTML = `
           <td>${cliente.nombre} <span style="cursor:pointer;" onclick="verDatosCliente(${indexOriginal})">⚙️</span></td>
           <td>${cliente.cuotas} de $${cliente.valorCuota.toLocaleString()} → Total: $${cliente.totalCredito.toLocaleString()}
@@ -320,121 +440,6 @@
       });
 
       document.getElementById("saldoTotal").textContent = saldo.toLocaleString();
-    }
-
-    function verDatosCliente(index) {
-      clienteActual = index;
-      const cliente = clientes[index];
-      document.getElementById("datosTitulo").textContent = `Datos de ${cliente.nombre}`;
-      document.getElementById("datosContenido").innerHTML = `
-        <p><strong>DNI:</strong> ${cliente.dni}</p>
-        <p><strong>Equipo:</strong> ${cliente.equipo}</p>
-        <p><strong>Nota:</strong> ${cliente.nota || "Sin nota"} 
-          <span class="edit-icon" onclick="editarNota(${index})">✏️</span></p>
-      `;
-      actualizarMovimientos();
-      document.getElementById("datosClienteModal").style.display = "flex";
-    }
-
-    function editarNota(index) {
-      indexNota = index;
-      document.getElementById("notaEditarInput").value = clientes[index].nota || "";
-      document.getElementById("modalNota").style.display = "flex";
-    }
-
-    function guardarNota() {
-      const nuevaNota = document.getElementById("notaEditarInput").value.trim();
-      clientes[indexNota].nota = nuevaNota;
-      cerrarModalNota();
-      verDatosCliente(indexNota);
-      mostrarAlerta("📝 Nota actualizada");
-    }
-
-    function cerrarModalNota() {
-      document.getElementById("modalNota").style.display = "none";
-    }
-
-    function actualizarMovimientos() {
-      const cliente = clientes[clienteActual];
-      const tbody = document.getElementById("detalleCliente");
-      tbody.innerHTML = "";
-      let entregado = 0;
-
-      cliente.movimientos.forEach(mov => {
-        entregado += mov.pago;
-        const fila = document.createElement("tr");
-        fila.innerHTML = `
-          <td>${formatearFecha(mov.fecha)}</td>
-          <td>$${mov.pago.toLocaleString()}</td>
-          <td>$${entregado.toLocaleString()}</td>
-        `;
-        tbody.appendChild(fila);
-      });
-
-      actualizarTabla();
-    }
-
-    function guardarMovimiento() {
-      const fecha = document.getElementById("fechaInput").value;
-      const pago = parseFloat(document.getElementById("pagoInput").value);
-
-      if (!fecha || isNaN(pago)) {
-        mostrarAlerta("⚠️ Ingresá una fecha y un monto válido");
-        return;
-      }
-
-      const cliente = clientes[clienteActual];
-      cliente.movimientos.push({ fecha, pago });
-
-      document.getElementById("fechaInput").value = "";
-      document.getElementById("pagoInput").value = "";
-
-      actualizarMovimientos();
-      mostrarAlerta("✅ Movimiento registrado");
-    }
-
-    function editarTelefono(index) {
-      indexTelefono = index;
-      document.getElementById("telefonoInput").value = clientes[index].telefono || "";
-      document.getElementById("modalTelefono").style.display = "flex";
-    }
-
-    function guardarTelefono() {
-      const nuevoTelefono = document.getElementById("telefonoInput").value.trim();
-      clientes[indexTelefono].telefono = nuevoTelefono;
-      cerrarModalTelefono();
-      actualizarTabla();
-      mostrarAlerta("📞 Teléfono actualizado");
-    }
-
-    function cerrarModalTelefono() {
-      document.getElementById("modalTelefono").style.display = "none";
-    }
-
-    function editarVencimiento(index) {
-      indexVencimiento = index;
-      document.getElementById("vencimientoInput").value = clientes[index].vencimiento;
-      document.getElementById("modalVencimiento").style.display = "flex";
-    }
-
-    function guardarVencimiento() {
-      const nuevaFecha = document.getElementById("vencimientoInput").value;
-      if (!nuevaFecha) {
-        mostrarAlerta("⚠️ Ingresá una fecha válida");
-        return;
-      }
-      clientes[indexVencimiento].vencimiento = nuevaFecha;
-      cerrarModalVencimiento();
-      actualizarTabla();
-      mostrarAlerta("📅 Vencimiento actualizado");
-    }
-
-    function cerrarModalVencimiento() {
-      document.getElementById("modalVencimiento").style.display = "none";
-    }
-
-    function cerrarDatosCliente() {
-      document.getElementById("datosClienteModal").style.display = "none";
     }
 
     function formatearFecha(fechaISO) {
