@@ -21,6 +21,10 @@
       margin: 0;
       font-size: 1.8em;
     }
+    main {
+      max-width: 1000px;
+      margin: auto;
+    }
     .saldo {
       text-align: right;
       padding: 10px 20px;
@@ -33,6 +37,20 @@
       50% { color: #7f00ff; text-shadow: 0 0 15px #7f00ff; }
       100% { color: #ff00aa; text-shadow: 0 0 5px #ff00aa; }
     }
+    .etiqueta-roja {
+      display: inline-block;
+      background-color: #ff0033;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 4px;
+      animation: parpadeo 1s infinite;
+      font-size: 0.9em;
+      margin-left: 5px;
+    }
+    @keyframes parpadeo {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
     .container {
       padding: 20px;
     }
@@ -44,6 +62,7 @@
     th, td {
       padding: 10px;
       border-bottom: 1px solid #444;
+      vertical-align: top;
     }
     .add-btn, .save-mov-btn, .close-btn {
       background-color: #7f00ff;
@@ -109,21 +128,23 @@
 </head>
 <body>
   <header><h1>Panel de Crédito Personal</h1></header>
-  <div class="saldo">Saldo total: $<span id="saldoTotal">0</span></div>
-  <div class="container">
-    <button class="add-btn" onclick="abrirFormularioCliente()">➕ Agregar Cliente</button>
-    <table>
-      <thead>
-        <tr>
-          <th>Cliente</th>
-          <th>Crédito Personal</th>
-          <th>Vencimiento</th>
-          <th>Teléfono</th>
-        </tr>
-      </thead>
-      <tbody id="clientesTabla"></tbody>
-    </table>
-  </div>
+  <main>
+    <div class="saldo">Saldo total: $<span id="saldoTotal">0</span></div>
+    <div class="container">
+      <button class="add-btn" onclick="abrirFormularioCliente()">➕ Agregar Cliente</button>
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Crédito Personal</th>
+            <th>Vencimiento</th>
+            <th>Teléfono</th>
+          </tr>
+        </thead>
+        <tbody id="clientesTabla"></tbody>
+      </table>
+    </div>
+  </main>
 
   <!-- Modales -->
   <div class="modal" id="formularioCliente">
@@ -211,7 +232,8 @@
     }
 
     function guardarCliente() {
-      const nombre = document.getElementById("nombreInput").value.trim();
+      const nombre = document.getElementById("nombreInput").value.trim
+            const nombre = document.getElementById("nombreInput").value.trim();
       const dni = document.getElementById("dniInput").value.trim();
       const cuotas = parseInt(document.getElementById("cuotasInput").value);
       const valorCuota = parseFloat(document.getElementById("valorCuotaInput").value);
@@ -226,7 +248,7 @@
 
       const totalCredito = cuotas * valorCuota;
 
-            clientes.push({
+      clientes.push({
         nombre,
         dni,
         cuotas,
@@ -255,6 +277,7 @@
         const vencimiento = formatearFecha(cliente.vencimiento);
         const diasRestantes = calcularDiasRestantes(cliente.vencimiento);
         const totalPagado = cliente.movimientos.reduce((acc, m) => acc + m.pago, 0);
+        const vencido = calcularDiasRestantes(cliente.vencimiento) <= 0;
 
         const fila = document.createElement("tr");
         fila.innerHTML = `
@@ -266,6 +289,7 @@
             ${vencimiento}
             <span style="cursor:pointer;" onclick="editarVencimiento(${index})">✏️</span><br>
             <small>Faltan ${diasRestantes} días</small>
+            ${vencido ? '<span class="etiqueta-roja">Vencido</span>' : ''}
           </td>
           <td>
             ${cliente.telefono || ""}
@@ -414,4 +438,5 @@
   </script>
 </body>
 </html>
+
 
