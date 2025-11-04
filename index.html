@@ -72,56 +72,99 @@
     tr:hover td {
       background-color: rgba(127, 0, 255, 0.1);
     }
+    .edit-btn {
+      background-color: transparent;
+      border: 1px solid #ff00aa;
+      color: #ff00aa;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .alerta {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #ff00aa;
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-weight: bold;
+      display: none;
+      z-index: 2000;
+    }
+    input, textarea {
+      background-color: #0a0a0a;
+      color: #fff;
+      border: 1px solid #7f00ff;
+      border-radius: 4px;
+      padding: 10px;
+      width: 100%;
+      margin-top: 5px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background-color: #1a1a1a;
+      padding: 20px;
+      border: 1px solid #ff00aa;
+      width: 90%;
+      max-width: 600px;
+      border-radius: 8px;
+    }
+    .close-btn {
+      float: right;
+      background-color: #ff00aa;
+      color: #000;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .save-mov-btn {
+      margin-top: 10px;
+      background-color: #7f00ff;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .movimientos-scroll {
+      max-height: 250px;
+      overflow-y: auto;
+      margin-top: 10px;
+      border: 1px solid #7f00ff;
+      border-radius: 6px;
+      box-shadow: inset 0 0 10px rgba(127, 0, 255, 0.2);
+    }
     .etiqueta-pagado {
+      background-color: #ff0033;
+      color: #fff;
       padding: 4px 10px;
       border-radius: 20px;
       font-size: 0.9em;
       font-weight: bold;
       margin-left: 10px;
-    }
-    .pagado-incompleto {
-      background-color: #ff0033;
-      color: #fff;
       animation: palpitar 2.5s infinite ease-in-out;
-    }
-    .pagado-completo {
-      background-color: #00cc66;
-      color: #fff;
-      animation: none;
     }
     @keyframes palpitar {
       0% { background-color: #ff0033; }
       50% { background-color: #990022; }
       100% { background-color: #ff0033; }
     }
-    .etiqueta-socio {
-      background-color: #ff0033;
-      color: #fff;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.9em;
-      font-weight: bold;
-      margin-left: 10px;
-      animation: palpitar 2.5s infinite ease-in-out;
-    }
-    .etiqueta-independiente {
-      background-color: #00c2ff;
-      color: #000;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.9em;
-      font-weight: bold;
-      margin-left: 10px;
-      animation: palpitar-indep 2.5s infinite ease-in-out;
-    }
-    @keyframes palpitar-indep {
-      0% { background-color: #00c2ff; }
-      50% { background-color: #0077aa; }
-      100% { background-color: #00c2ff; }
-    }
   </style>
 </head>
 <body>
+  <!-- CONTENIDO HTML CONTINÚA AQUÍ -->
   <header><h1>Panel de Crédito Personal</h1></header>
   <div class="saldo">Saldo total: $<span id="saldoTotal">0</span></div>
   <div class="container">
@@ -138,99 +181,63 @@
       <tbody id="clientesTabla"></tbody>
     </table>
   </div>
-<!-- Formulario para agregar cliente -->
-<div class="modal" id="formularioCliente">
-  <div class="modal-content">
-    <button class="close-btn" onclick="cerrarFormularioCliente()">Cerrar</button>
-    <h2>Agregar Cliente</h2>
-    <input type="text" id="nombreInput" placeholder="Nombre y apellido" />
-    <input type="text" id="dniInput" placeholder="DNI" />
-    <input type="number" id="cuotasInput" placeholder="Cantidad de cuotas" />
-    <input type="number" id="valorCuotaInput" placeholder="Valor de cada cuota" />
-    <input type="text" id="equipoInput" placeholder="Equipo vendido" />
 
-    <label>Vencimiento:</label>
-    <div style="display:flex; gap:10px; margin-top:5px;">
-      <select id="diaVencimiento">
-        <option value="">Día</option>
-        <script>
-          for (let i = 1; i <= 31; i++) {
-            document.write(`<option value="${i}">${i}</option>`);
-          }
-        </script>
-      </select>
-      <select id="mesVencimiento">
-        <option value="">Mes</option>
-        <option value="enero">Enero</option>
-        <option value="febrero">Febrero</option>
-        <option value="marzo">Marzo</option>
-        <option value="abril">Abril</option>
-        <option value="mayo">Mayo</option>
-        <option value="junio">Junio</option>
-        <option value="julio">Julio</option>
-        <option value="agosto">Agosto</option>
-        <option value="septiembre">Septiembre</option>
-        <option value="octubre">Octubre</option>
-        <option value="noviembre">Noviembre</option>
-        <option value="diciembre">Diciembre</option>
-      </select>
-      <input type="number" id="anioVencimiento" placeholder="Año" min="2020" max="2035" />
+  <!-- Formulario para agregar cliente -->
+  <div class="modal" id="formularioCliente">
+    <div class="modal-content">
+      <button class="close-btn" onclick="cerrarFormularioCliente()">Cerrar</button>
+      <h2>Agregar Cliente</h2>
+      <input type="text" id="nombreInput" placeholder="Nombre y apellido" />
+      <input type="text" id="dniInput" placeholder="DNI" />
+      <input type="number" id="cuotasInput" placeholder="Cantidad de cuotas" />
+      <input type="number" id="valorCuotaInput" placeholder="Valor de cada cuota" />
+      <input type="date" id="fechaAltaInput" />
+      <input type="text" id="equipoInput" placeholder="Equipo vendido" />
+      <textarea id="notaInput" placeholder="Nota adicional"></textarea>
+      <button class="save-mov-btn" onclick="guardarCliente()">Guardar Cliente</button>
     </div>
-
-    <label style="margin-top:10px;">Socio:</label>
-    <select id="socioSelect" onchange="mostrarCampoNuevoSocio()">
-      <option value="Independiente">Independiente</option>
-      <option value="Mario Castro">Mario Castro</option>
-      <option value="Juan Pérez">Juan Pérez</option>
-      <option value="nuevo">Agregar nuevo socio</option>
-    </select>
-    <input type="text" id="nuevoSocioInput" placeholder="Nombre del nuevo socio" style="display:none;" />
-
-    <textarea id="notaInput" placeholder="Nota adicional"></textarea>
-    <button class="save-mov-btn" onclick="guardarCliente()">Guardar Cliente</button>
   </div>
-</div>
 
-<!-- Modal para ver datos del cliente -->
-<div class="modal" id="datosClienteModal">
-  <div class="modal-content">
-    <button class="close-btn" onclick="cerrarDatosCliente()">Cerrar</button>
-    <h2 id="datosTitulo">Datos del Cliente</h2>
-    <div id="datosContenido"></div>
-    <h3>Movimientos</h3>
-    <div class="movimientos-scroll">
-      <table>
-        <thead><tr><th>Fecha</th><th>Pago</th><th>Entregado</th></tr></thead>
-        <tbody id="detalleCliente"></tbody>
-      </table>
+  <!-- Modal para ver datos del cliente -->
+  <div class="modal" id="datosClienteModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="cerrarDatosCliente()">Cerrar</button>
+      <h2 id="datosTitulo">Datos del Cliente</h2>
+      <div id="datosContenido"></div>
+      <h3>Movimientos</h3>
+      <div class="movimientos-scroll">
+        <table>
+          <thead><tr><th>Fecha</th><th>Pago</th><th>Entregado</th></tr></thead>
+          <tbody id="detalleCliente"></tbody>
+        </table>
+      </div>
+      <input type="date" id="fechaInput" />
+      <input type="number" placeholder="Pago" id="pagoInput" />
+      <button class="save-mov-btn" onclick="guardarMovimiento()">Registrar Pago</button>
     </div>
-    <input type="date" id="fechaInput" />
-    <input type="number" placeholder="Pago" id="pagoInput" />
-    <button class="save-mov-btn" onclick="guardarMovimiento()">Registrar Pago</button>
   </div>
-</div>
 
-<!-- Modal para editar teléfono -->
-<div class="modal" id="modalTelefono">
-  <div class="modal-content">
-    <button class="close-btn" onclick="cerrarModalTelefono()">Cerrar</button>
-    <h3>Editar Teléfono</h3>
-    <input type="text" id="telefonoInput" placeholder="Número de teléfono" />
-    <button class="save-mov-btn" onclick="guardarTelefono()">Guardar</button>
+  <!-- Modal para editar teléfono -->
+  <div class="modal" id="modalTelefono">
+    <div class="modal-content">
+      <button class="close-btn" onclick="cerrarModalTelefono()">Cerrar</button>
+      <h3>Editar Teléfono</h3>
+      <input type="text" id="telefonoInput" placeholder="Número de teléfono" />
+      <button class="save-mov-btn" onclick="guardarTelefono()">Guardar</button>
+    </div>
   </div>
-</div>
 
-<!-- Modal para editar vencimiento -->
-<div class="modal" id="modalVencimiento">
-  <div class="modal-content">
-    <button class="close-btn" onclick="cerrarModalVencimiento()">Cerrar</button>
-    <h3>Editar Vencimiento</h3>
-    <input type="text" id="vencimientoInput" placeholder="Ej: 23 de noviembre de 2025" />
-    <button class="save-mov-btn" onclick="guardarVencimiento()">Guardar</button>
+  <!-- Modal para editar vencimiento -->
+  <div class="modal" id="modalVencimiento">
+    <div class="modal-content">
+      <button class="close-btn" onclick="cerrarModalVencimiento()">Cerrar</button>
+      <h3>Editar Vencimiento</h3>
+      <input type="date" id="vencimientoInput" />
+      <button class="save-mov-btn" onclick="guardarVencimiento()">Guardar</button>
+    </div>
   </div>
-</div>
 
-<div id="alerta" class="alerta"></div>
+  <div id="alerta" class="alerta"></div>
 <script>
 let clientes = [];
 let clienteActual = null;
@@ -252,31 +259,16 @@ function cerrarFormularioCliente() {
   document.getElementById("formularioCliente").style.display = "none";
 }
 
-function mostrarCampoNuevoSocio() {
-  const select = document.getElementById("socioSelect");
-  const input = document.getElementById("nuevoSocioInput");
-  input.style.display = select.value === "nuevo" ? "block" : "none";
-}
-
 function guardarCliente() {
   const nombre = document.getElementById("nombreInput").value.trim();
   const dni = document.getElementById("dniInput").value.trim();
   const cuotas = parseInt(document.getElementById("cuotasInput").value);
   const valorCuota = parseFloat(document.getElementById("valorCuotaInput").value);
+  const fechaAlta = document.getElementById("fechaAltaInput").value;
   const equipo = document.getElementById("equipoInput").value.trim();
   const nota = document.getElementById("notaInput").value.trim();
 
-  const dia = document.getElementById("diaVencimiento").value;
-  const mes = document.getElementById("mesVencimiento").value;
-  const anio = document.getElementById("anioVencimiento").value;
-  const vencimiento = `${dia} de ${mes} de ${anio}`;
-
-  let socio = document.getElementById("socioSelect").value;
-  if (socio === "nuevo") {
-    socio = document.getElementById("nuevoSocioInput").value || "Independiente";
-  }
-
-  if (!nombre || !dni || isNaN(cuotas) || isNaN(valorCuota) || !equipo || !dia || !mes || !anio) {
+  if (!nombre || !dni || isNaN(cuotas) || isNaN(valorCuota) || !fechaAlta || !equipo) {
     mostrarAlerta("⚠️ Completa todos los campos obligatorios");
     return;
   }
@@ -289,11 +281,11 @@ function guardarCliente() {
     cuotas,
     valorCuota,
     totalCredito,
+    fechaAlta,
     equipo,
     nota,
     telefono: "",
-    vencimiento,
-    socio,
+    vencimiento: fechaAlta,
     movimientos: []
   });
 
@@ -309,18 +301,18 @@ function actualizarTabla() {
 
   clientes.forEach((cliente, index) => {
     saldo += cliente.totalCredito;
+    const vencimiento = formatearFecha(cliente.vencimiento);
     const diasRestantes = calcularDiasRestantes(cliente.vencimiento);
     const totalPagado = cliente.movimientos.reduce((acc, m) => acc + m.pago, 0);
-    const pagadoClass = totalPagado >= cliente.totalCredito ? "pagado-completo" : "pagado-incompleto";
 
     const fila = document.createElement("tr");
     fila.innerHTML = `
       <td>${cliente.nombre} <span style="cursor:pointer;" onclick="verDatosCliente(${index})">⚙️</span></td>
       <td>${cliente.cuotas} de $${cliente.valorCuota.toLocaleString()} → Total: $${cliente.totalCredito.toLocaleString()}
-        <span class="etiqueta-pagado ${pagadoClass}">Pagado: $${totalPagado.toLocaleString()}</span>
+        <span class="etiqueta-pagado">Pagado: $${totalPagado.toLocaleString()}</span>
       </td>
       <td>
-        ${cliente.vencimiento}
+        ${vencimiento}
         <span style="cursor:pointer;" onclick="editarVencimiento(${index})">✏️</span><br>
         <small>Faltan ${diasRestantes} días</small>
       </td>
@@ -341,13 +333,9 @@ function verDatosCliente(index) {
   document.getElementById("datosTitulo").textContent = `Datos de ${cliente.nombre}`;
   document.getElementById("datosContenido").innerHTML = `
     <p><strong>DNI:</strong> ${cliente.dni}</p>
-    <p><strong>Equipo:</strong> ${cliente.equipo}
-      ${cliente.socio === "Independiente"
-        ? '<span class="etiqueta-independiente">Independiente</span>'
-        : '<span class="etiqueta-socio">Socio: ' + cliente.socio + '</span>'}
-    </p>
+    <p><strong>Equipo:</strong> ${cliente.equipo}</p>
     <p><strong>Nota:</strong> ${cliente.nota || "Sin nota"}</p>
-    <p><strong>Vencimiento:</strong> ${cliente.vencimiento}</p>
+    <p><strong>Fecha de alta:</strong> ${formatearFecha(cliente.fechaAlta)}</p>
   `;
   actualizarMovimientos();
   document.getElementById("datosClienteModal").style.display = "flex";
@@ -417,7 +405,7 @@ function editarVencimiento(index) {
 }
 
 function guardarVencimiento() {
-  const nuevaFecha = document.getElementById("vencimientoInput").value.trim();
+  const nuevaFecha = document.getElementById("vencimientoInput").value;
   if (!nuevaFecha) {
     mostrarAlerta("⚠️ Ingresá una fecha válida");
     return;
@@ -437,25 +425,19 @@ function cerrarDatosCliente() {
 }
 
 function formatearFecha(fechaISO) {
+  const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
+    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
   const fecha = new Date(fechaISO);
   const dia = fecha.getDate().toString().padStart(2, '0');
-  const mes = fecha.toLocaleString('es-ES', { month: 'long' });
+  const mes = meses[fecha.getMonth()];
   const año = fecha.getFullYear();
   return `${dia} de ${mes} de ${año}`;
 }
 
-function calcularDiasRestantes(fechaTexto) {
-  const partes = fechaTexto.split(" de ");
-  if (partes.length !== 3) return 0;
-  const dia = parseInt(partes[0]);
-  const mesTexto = partes[1].toLowerCase();
-  const año = parseInt(partes[2]);
-  const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-  const mes = meses.indexOf(mesTexto);
-  if (mes === -1) return 0;
-  const fecha = new Date(año, mes, dia);
+function calcularDiasRestantes(fecha) {
   const hoy = new Date();
-  const diff = fecha - hoy;
+  const venc = new Date(fecha);
+  const diff = venc - hoy;
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
@@ -463,4 +445,3 @@ actualizarTabla();
 </script>
 </body>
 </html>
-
