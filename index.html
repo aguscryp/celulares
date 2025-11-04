@@ -150,22 +150,6 @@
       margin-top: 5px;
     }
 
-    .movimientos-scroll {
-      max-height: 200px;
-      overflow-y: auto;
-      margin-top: 10px;
-    }
-
-    .edit-icon {
-      cursor: pointer;
-      margin-left: 5px;
-      color: #ffccff;
-    }
-
-    small {
-      color: #ccc;
-    }
-
     .terminado {
       position: relative;
       opacity: 0.4;
@@ -244,26 +228,6 @@
   </style>
 </head>
 <body>
-  <header><h1>Panel de Crédito Personal</h1></header>
-  <main>
-    <div class="saldo">Saldo total: $<span id="saldoTotal">0</span></div>
-    <div class="container">
-      <input type="text" id="buscadorDNI" placeholder="🔍 Buscar por DNI..." oninput="filtrarClientes()" />
-      <button class="add-btn" onclick="abrirFormularioCliente()">➕ Agregar Cliente</button>
-      <table>
-        <thead>
-          <tr>
-            <th>Cliente</th>
-            <th>Crédito Personal</th>
-            <th>Vencimiento</th>
-            <th>Teléfono</th>
-          </tr>
-        </thead>
-        <tbody id="clientesTabla"></tbody>
-      </table>
-    </div>
-  </main>
-
   <div id="overlayCarga" class="overlay-carga">
     <div class="spinner"></div>
     <div class="barra-progreso"><div class="progreso"></div></div>
@@ -271,6 +235,53 @@
   </div>
 
   <div id="alerta" class="alerta"></div>
+
+  <!-- Modales dinámicos -->
+  <div id="modalTelefono" class="modal">
+    <div class="modal-content">
+      <h3>Editar Teléfono</h3>
+      <input id="telefonoInput" placeholder="Nuevo teléfono" />
+      <button class="save-mov-btn" onclick="guardarTelefono()">Guardar</button>
+      <button class="close-btn" onclick="cerrarModalTelefono()">Cancelar</button>
+    </div>
+  </div>
+
+  <div id="modalVencimiento" class="modal">
+    <div class="modal-content">
+      <h3>Editar Vencimiento</h3>
+      <input id="vencimientoInput" type="date" />
+      <button class="save-mov-btn" onclick="guardarVencimiento()">Guardar</button>
+      <button class="close-btn" onclick="cerrarModalVencimiento()">Cancelar</button>
+    </div>
+  </div>
+
+  <div id="modalNota" class="modal">
+    <div class="modal-content">
+      <h3>Editar Nota</h3>
+      <textarea id="notaEditarInput" placeholder="Nueva nota..."></textarea>
+      <button class="save-mov-btn" onclick="guardarNota()">Guardar</button>
+      <button class="close-btn" onclick="cerrarModalNota()">Cancelar</button>
+    </div>
+  </div>
+
+  <div id="datosClienteModal" class="modal">
+    <div class="modal-content">
+      <h3 id="datosTitulo">Datos del Cliente</h3>
+      <div id="datosContenido"></div>
+      <h4>Registrar Movimiento</h4>
+      <input id="fechaInput" type="date" />
+      <input id="pagoInput" type="number" placeholder="Monto pagado" />
+      <button class="save-mov-btn" onclick="guardarMovimiento()">Registrar</button>
+      <h4>Historial</h4>
+      <table>
+        <thead>
+          <tr><th>Fecha</th><th>Pago</th><th>Acumulado</th></tr>
+        </thead>
+        <tbody id="detalleCliente" class="movimientos-scroll"></tbody>
+      </table>
+      <button class="close-btn" onclick="cerrarDatosCliente()">Cerrar</button>
+    </div>
+  </div>
 
   <script>
     let clientes = [];
@@ -299,7 +310,7 @@
     }
 
     function abrirFormularioCliente() {
-      document.getElementById("formularioCliente")?.remove(); // Limpieza previa si ya existe
+      document.getElementById("formularioCliente")?.remove();
       const modal = document.createElement("div");
       modal.id = "formularioCliente";
       modal.className = "modal";
@@ -380,6 +391,102 @@
         actualizarMovimientos();
         mostrarAlerta("✅ Movimiento registrado");
       });
+    }
+
+    function editarTelefono(index) {
+      indexTelefono = index;
+      document.getElementById("telefonoInput").value = clientes[index].telefono || "";
+      document.getElementById("modalTelefono").style.display = "flex";
+    }
+
+    function guardarTelefono() {
+      const nuevoTelefono = document.getElementById("telefonoInput").value.trim();
+      clientes[indexTelefono].telefono = nuevoTelefono;
+      cerrarModalTelefono();
+      actualizarTabla();
+      mostrarAlerta("📞 Teléfono actualizado");
+    }
+
+    function cerrarModalTelefono() {
+      document.getElementById("modalTelefono").style.display = "none";
+    }
+
+    function editarVencimiento(index) {
+      indexVencimiento = index;
+      document.getElementById("vencimientoInput").value = clientes[index].vencimiento;
+      document.getElementById("modalVencimiento").style.display = "flex";
+    }
+
+    function guardarVencimiento() {
+      const nuevaFecha = document.getElementById("vencimientoInput").value;
+      if (!nuevaFecha) {
+        mostrarAlerta("⚠️ Ingresá una fecha válida");
+        return;
+      }
+      clientes[indexVencimiento].vencimiento = nuevaFecha;
+      cerrarModalVencimiento();
+      actualizarTabla();
+      mostrarAlerta("📅 Vencimiento actualizado");
+    }
+
+    function cerrarModalVencimiento() {
+      document.getElementById("modalVencimiento").style.display = "none";
+    }
+
+    function editarNota(index) {
+      indexNota = index;
+      document.getElementById("notaEditarInput").value = clientes[index].nota || "";
+      document.getElementById("modalNota").style.display = "flex";
+    }
+
+    function guardarNota() {
+      const nuevaNota = document.getElementById("notaEditarInput").value.trim();
+      clientes[indexNota].nota = nuevaNota;
+      cerrarModalNota();
+      verDatosCliente(indexNota);
+      mostrarAlerta("📝 Nota actualizada");
+    }
+
+    function cerrarModalNota() {
+      document.getElementById("modalNota").style.display = "none";
+    }
+
+    function verDatosCliente(index) {
+      clienteActual = index;
+      const cliente = clientes[index];
+      document.getElementById("datosTitulo").textContent = `Datos de ${cliente.nombre}`;
+            document.getElementById("datosContenido").innerHTML = `
+        <p><strong>DNI:</strong> ${cliente.dni}</p>
+        <p><strong>Equipo:</strong> ${cliente.equipo}</p>
+        <p><strong>Nota:</strong> ${cliente.nota || "Sin nota"} 
+          <span class="edit-icon" onclick="editarNota(${index})">✏️</span></p>
+      `;
+      actualizarMovimientos();
+      document.getElementById("datosClienteModal").style.display = "flex";
+    }
+
+    function cerrarDatosCliente() {
+      document.getElementById("datosClienteModal").style.display = "none";
+    }
+
+    function actualizarMovimientos() {
+      const cliente = clientes[clienteActual];
+      const tbody = document.getElementById("detalleCliente");
+      tbody.innerHTML = "";
+      let entregado = 0;
+
+      cliente.movimientos.forEach(mov => {
+        entregado += mov.pago;
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${formatearFecha(mov.fecha)}</td>
+          <td>$${mov.pago.toLocaleString()}</td>
+          <td>$${entregado.toLocaleString()}</td>
+        `;
+        tbody.appendChild(fila);
+      });
+
+      actualizarTabla();
     }
 
     function filtrarClientes() {
