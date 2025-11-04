@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Crédito Personal - Clientes</title>
   <style>
-    /* Estilo Brubank */
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -166,6 +165,29 @@
     small {
       color: #ccc;
     }
+
+    .terminado {
+      position: relative;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .terminado::after {
+      content: "Crédito Terminado";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: #0f0;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 1.2em;
+      font-weight: bold;
+      box-shadow: 0 0 10px #0f0;
+      z-index: 10;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -255,226 +277,233 @@
     let clientes = [];
     let clienteActual = null;
     let indexTelefono = null;
-      let indexVencimiento = null;
-  
-  function mostrarAlerta(mensaje) {
-    const alerta = document.getElementById("alerta");
-    alerta.textContent = mensaje;
-    alerta.style.display = "block";
-    setTimeout(() => alerta.style.display = "none", 3000);
-  }
+    let indexVencimiento = null;
+    let indexNota = null;
 
-  function abrirFormularioCliente() {
-    document.getElementById("formularioCliente").style.display = "flex";
-  }
-
-  function cerrarFormularioCliente() {
-    document.getElementById("formularioCliente").style.display = "none";
-  }
-
-  function guardarCliente() {
-    const nombre = document.getElementById("nombreInput").value.trim();
-    const dni = document.getElementById("dniInput").value.trim();
-    const cuotas = parseInt(document.getElementById("cuotasInput").value);
-    const valorCuota = parseFloat(document.getElementById("valorCuotaInput").value);
-    const fechaAlta = document.getElementById("fechaAltaInput").value;
-    const equipo = document.getElementById("equipoInput").value.trim();
-    const nota = document.getElementById("notaInput").value.trim();
-
-    if (!nombre || !dni || isNaN(cuotas) || isNaN(valorCuota) || !fechaAlta || !equipo) {
-      mostrarAlerta("⚠️ Completa todos los campos obligatorios");
-      return;
+    function mostrarAlerta(mensaje) {
+      const alerta = document.getElementById("alerta");
+      alerta.textContent = mensaje;
+      alerta.style.display = "block";
+      setTimeout(() => alerta.style.display = "none", 3000);
     }
 
-    const totalCredito = cuotas * valorCuota;
+    function abrirFormularioCliente() {
+      document.getElementById("formularioCliente").style.display = "flex";
+    }
 
-    clientes.push({
-      nombre,
-      dni,
-      cuotas,
-      valorCuota,
-      totalCredito,
-      fechaAlta,
-      equipo,
-      nota,
-      telefono: "",
-      vencimiento: fechaAlta,
-      movimientos: []
-    });
+    function cerrarFormularioCliente() {
+      document.getElementById("formularioCliente").style.display = "none";
+    }
 
-    cerrarFormularioCliente();
-    actualizarTabla();
-    mostrarAlerta("✅ Cliente agregado correctamente");
-  }
+    function guardarCliente() {
+      const nombre = document.getElementById("nombreInput").value.trim();
+      const dni = document.getElementById("dniInput").value.trim();
+      const cuotas = parseInt(document.getElementById("cuotasInput").value);
+      const valorCuota = parseFloat(document.getElementById("valorCuotaInput").value);
+      const fechaAlta = document.getElementById("fechaAltaInput").value;
+      const equipo = document.getElementById("equipoInput").value.trim();
+      const nota = document.getElementById("notaInput").value.trim();
 
-  function actualizarTabla() {
-    const tabla = document.getElementById("clientesTabla");
-    tabla.innerHTML = "";
-    let saldo = 0;
+      if (!nombre || !dni || isNaN(cuotas) || isNaN(valorCuota) || !fechaAlta || !equipo) {
+        mostrarAlerta("⚠️ Completa todos los campos obligatorios");
+        return;
+      }
 
-    clientes.forEach((cliente, index) => {
-      saldo += cliente.totalCredito;
-      const vencimiento = formatearFecha(cliente.vencimiento);
-      const diasRestantes = calcularDiasRestantes(cliente.vencimiento);
-      const totalPagado = cliente.movimientos.reduce((acc, m) => acc + m.pago, 0);
-      const vencido = calcularDiasRestantes(cliente.vencimiento) <= 0;
+      const totalCredito = cuotas * valorCuota;
 
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-        <td>${cliente.nombre} <span style="cursor:pointer;" onclick="verDatosCliente(${index})">⚙️</span></td>
-        <td>${cliente.cuotas} de $${cliente.valorCuota.toLocaleString()} → Total: $${cliente.totalCredito.toLocaleString()}
-          <span class="etiqueta-pagado">Pagado: $${totalPagado.toLocaleString()}</span>
-        </td>
-        <td>
-          ${vencimiento}
-          <span style="cursor:pointer;" onclick="editarVencimiento(${index})">✏️</span><br>
-          <small>Faltan ${diasRestantes} días</small>
-          ${vencido ? '<span class="etiqueta-roja">Vencido</span>' : ''}
-        </td>
-        <td>
-          ${cliente.telefono || ""}
-          <span style="cursor:pointer;" onclick="editarTelefono(${index})">✏️</span>
-        </td>
+      clientes.push({
+        nombre,
+        dni,
+        cuotas,
+        valorCuota,
+        totalCredito,
+        fechaAlta,
+        equipo,
+        nota,
+        telefono: "",
+        vencimiento: fechaAlta,
+        movimientos: []
+      });
+
+      cerrarFormularioCliente();
+      actualizarTabla();
+      mostrarAlerta("✅ Cliente agregado correctamente");
+    }
+
+    function actualizarTabla() {
+      const tabla = document.getElementById("clientesTabla");
+      tabla.innerHTML = "";
+      let saldo = 0;
+
+      clientes.forEach((cliente, index) => {
+        saldo += cliente.totalCredito;
+        const vencimiento = formatearFecha(cliente.vencimiento);
+        const diasRestantes = calcularDiasRestantes(cliente.vencimiento);
+        const totalPagado = cliente.movimientos.reduce((acc, m) => acc + m.pago, 0);
+        const vencido = calcularDiasRestantes(cliente.vencimiento) <= 0;
+        const creditoTerminado = totalPagado >= cliente.totalCredito;
+
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${cliente.nombre} <span style="cursor:pointer;" onclick="verDatosCliente(${index})">⚙️</span></td>
+          <td>${cliente.cuotas} de $${cliente.valorCuota.toLocaleString()} → Total: $${cliente.totalCredito.toLocaleString()}
+            <span class="etiqueta-pagado">Pagado: $${totalPagado.toLocaleString()}</span>
+          </td>
+          <td>
+            ${vencimiento}
+            <span style="cursor:pointer;" onclick="editarVencimiento(${index})">✏️</span><br>
+            <small>Faltan ${diasRestantes} días</small>
+            ${vencido ? '<span class="etiqueta-roja">Vencido</span>' : ''}
+          </td>
+          <td>
+            ${cliente.telefono || ""}
+            <span style="cursor:pointer;" onclick="editarTelefono(${index})">✏️</span>
+          </td>
+        `;
+
+        if (creditoTerminado) {
+          fila.classList.add("terminado");
+        }
+
+        tabla.appendChild(fila);
+      });
+
+      document.getElementById("saldoTotal").textContent = saldo.toLocaleString();
+    }
+
+    function verDatosCliente(index) {
+      clienteActual = index;
+      const cliente = clientes[index];
+      document.getElementById("datosTitulo").textContent = `Datos de ${cliente.nombre}`;
+      document.getElementById("datosContenido").innerHTML = `
+        <p><strong>DNI:</strong> ${cliente.dni}</p>
+        <p><strong>Equipo:</strong> ${cliente.equipo}</p>
+        <p><strong>Nota:</strong> ${cliente.nota || "Sin nota"} 
+          <span class="edit-icon" onclick="editarNota(${index})">✏️</span></p>
       `;
-      tabla.appendChild(fila);
-    });
-
-    document.getElementById("saldoTotal").textContent = saldo.toLocaleString();
-  }
-
-  function verDatosCliente(index) {
-    clienteActual = index;
-    const cliente = clientes[index];
-    document.getElementById("datosTitulo").textContent = `Datos de ${cliente.nombre}`;
-    document.getElementById("datosContenido").innerHTML = `
-      <p><strong>DNI:</strong> ${cliente.dni}</p>
-      <p><strong>Equipo:</strong> ${cliente.equipo}</p>
-      <p><strong>Nota:</strong> ${cliente.nota || "Sin nota"} 
-        <span class="edit-icon" onclick="editarNota(${index})">✏️</span></p>
-    `;
-    actualizarMovimientos();
-    document.getElementById("datosClienteModal").style.display = "flex";
-  }
-
-  function editarNota(index) {
-    indexNota = index;
-    document.getElementById("notaEditarInput").value = clientes[index].nota || "";
-    document.getElementById("modalNota").style.display = "flex";
-  }
-
-  function guardarNota() {
-    const nuevaNota = document.getElementById("notaEditarInput").value.trim();
-    clientes[indexNota].nota = nuevaNota;
-    cerrarModalNota();
-    verDatosCliente(indexNota);
-    mostrarAlerta("📝 Nota actualizada");
-  }
-
-  function cerrarModalNota() {
-    document.getElementById("modalNota").style.display = "none";
-  }
-
-  function actualizarMovimientos() {
-    const cliente = clientes[clienteActual];
-    const tbody = document.getElementById("detalleCliente");
-    tbody.innerHTML = "";
-    let entregado = 0;
-
-    cliente.movimientos.forEach(mov => {
-      entregado += mov.pago;
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-        <td>${formatearFecha(mov.fecha)}</td>
-        <td>$${mov.pago.toLocaleString()}</td>
-        <td>$${entregado.toLocaleString()}</td>
-      `;
-      tbody.appendChild(fila);
-    });
-
-    actualizarTabla();
-  }
-
-  function guardarMovimiento() {
-    const fecha = document.getElementById("fechaInput").value;
-    const pago = parseFloat(document.getElementById("pagoInput").value);
-
-    if (!fecha || isNaN(pago)) {
-      mostrarAlerta("⚠️ Ingresá una fecha y un monto válido");
-      return;
+      actualizarMovimientos();
+      document.getElementById("datosClienteModal").style.display = "flex";
     }
 
-    const cliente = clientes[clienteActual];
-    cliente.movimientos.push({ fecha, pago });
-
-    document.getElementById("fechaInput").value = "";
-    document.getElementById("pagoInput").value = "";
-
-    actualizarMovimientos();
-    mostrarAlerta("✅ Movimiento registrado");
-  }
-
-  function editarTelefono(index) {
-    indexTelefono = index;
-    document.getElementById("telefonoInput").value = clientes[index].telefono || "";
-    document.getElementById("modalTelefono").style.display = "flex";
-  }
-
-  function guardarTelefono() {
-    const nuevoTelefono = document.getElementById("telefonoInput").value.trim();
-    clientes[indexTelefono].telefono = nuevoTelefono;
-    cerrarModalTelefono();
-    actualizarTabla();
-    mostrarAlerta("📞 Teléfono actualizado");
-  }
-
-  function cerrarModalTelefono() {
-    document.getElementById("modalTelefono").style.display = "none";
-  }
-
-  function editarVencimiento(index) {
-    indexVencimiento = index;
-    document.getElementById("vencimientoInput").value = clientes[index].vencimiento;
-    document.getElementById("modalVencimiento").style.display = "flex";
-  }
-
-  function guardarVencimiento() {
-    const nuevaFecha = document.getElementById("vencimientoInput").value;
-    if (!nuevaFecha) {
-      mostrarAlerta("⚠️ Ingresá una fecha válida");
-      return;
+    function editarNota(index) {
+      indexNota = index;
+      document.getElementById("notaEditarInput").value = clientes[index].nota || "";
+      document.getElementById("modalNota").style.display = "flex";
     }
-    clientes[indexVencimiento].vencimiento = nuevaFecha;
-    cerrarModalVencimiento();
+
+    function guardarNota() {
+      const nuevaNota = document.getElementById("notaEditarInput").value.trim();
+      clientes[indexNota].nota = nuevaNota;
+      cerrarModalNota();
+      verDatosCliente(indexNota);
+      mostrarAlerta("📝 Nota actualizada");
+    }
+
+    function cerrarModalNota() {
+      document.getElementById("modalNota").style.display = "none";
+    }
+
+    function actualizarMovimientos() {
+      const cliente = clientes[clienteActual];
+      const tbody = document.getElementById("detalleCliente");
+      tbody.innerHTML = "";
+      let entregado = 0;
+
+      cliente.movimientos.forEach(mov => {
+        entregado += mov.pago;
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${formatearFecha(mov.fecha)}</td>
+          <td>$${mov.pago.toLocaleString()}</td>
+          <td>$${entregado.toLocaleString()}</td>
+        `;
+        tbody.appendChild(fila);
+      });
+
+      actualizarTabla();
+    }
+
+    function guardarMovimiento() {
+      const fecha = document.getElementById("fechaInput").value;
+      const pago = parseFloat(document.getElementById("pagoInput").value);
+
+      if (!fecha || isNaN(pago)) {
+        mostrarAlerta("⚠️ Ingresá una fecha y un monto válido");
+        return;
+      }
+
+      const cliente = clientes[clienteActual];
+      cliente.movimientos.push({ fecha, pago });
+
+      document.getElementById("fechaInput").value = "";
+      document.getElementById("pagoInput").value = "";
+
+      actualizarMovimientos();
+      mostrarAlerta("✅ Movimiento registrado");
+    }
+
+    function editarTelefono(index) {
+      indexTelefono = index;
+      document.getElementById("telefonoInput").value = clientes[index].telefono || "";
+      document.getElementById("modalTelefono").style.display = "flex";
+    }
+
+    function guardarTelefono() {
+      const nuevoTelefono = document.getElementById("telefonoInput").value.trim();
+      clientes[indexTelefono].telefono = nuevoTelefono;
+      cerrarModalTelefono();
+      actualizarTabla();
+      mostrarAlerta("📞 Teléfono actualizado");
+    }
+
+    function cerrarModalTelefono() {
+      document.getElementById("modalTelefono").style.display = "none";
+    }
+
+    function editarVencimiento(index) {
+      indexVencimiento = index;
+      document.getElementById("vencimientoInput").value = clientes[index].vencimiento;
+      document.getElementById("modalVencimiento").style.display = "flex";
+    }
+
+    function guardarVencimiento() {
+      const nuevaFecha = document.getElementById("vencimientoInput").value;
+      if (!nuevaFecha) {
+        mostrarAlerta("⚠️ Ingresá una fecha válida");
+        return;
+      }
+      clientes[indexVencimiento].vencimiento = nuevaFecha;
+      cerrarModalVencimiento();
+      actualizarTabla();
+      mostrarAlerta("📅 Vencimiento actualizado");
+    }
+
+    function cerrarModalVencimiento() {
+      document.getElementById("modalVencimiento").style.display = "none";
+    }
+
+    function cerrarDatosCliente() {
+      document.getElementById("datosClienteModal").style.display = "none";
+    }
+
+    function formatearFecha(fechaISO) {
+      const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
+        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+      const fecha = new Date(fechaISO);
+      const dia = fecha.getDate().toString().padStart(2, '0');
+      const mes = meses[fecha.getMonth()];
+      const año = fecha.getFullYear();
+      return `${dia} de ${mes} de ${año}`;
+    }
+
+    function calcularDiasRestantes(fecha) {
+      const hoy = new Date();
+      const venc = new Date(fecha);
+      const diff = venc - hoy;
+      return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    }
+
     actualizarTabla();
-    mostrarAlerta("📅 Vencimiento actualizado");
-  }
-
-  function cerrarModalVencimiento() {
-    document.getElementById("modalVencimiento").style.display = "none";
-  }
-
-  function cerrarDatosCliente() {
-    document.getElementById("datosClienteModal").style.display = "none";
-  }
-
-  function formatearFecha(fechaISO) {
-    const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
-      "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
-    const fecha = new Date(fechaISO);
-    const dia = fecha.getDate().toString().padStart(2, '0');
-    const mes = meses[fecha.getMonth()];
-    const año = fecha.getFullYear();
-    return `${dia} de ${mes} de ${año}`;
-  }
-
-  function calcularDiasRestantes(fecha) {
-    const hoy = new Date();
-    const venc = new Date(fecha);
-    const diff = venc - hoy;
-    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-  }
-
-  actualizarTabla();
   </script>
 </body>
 </html>
