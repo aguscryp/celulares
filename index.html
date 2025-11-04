@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Crédito Personal - Clientes</title>
   <style>
-    /* Tu CSS completo */
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -34,7 +33,78 @@
       50% { color: #7f00ff; text-shadow: 0 0 15px #7f00ff; }
       100% { color: #ff00aa; text-shadow: 0 0 5px #ff00aa; }
     }
-    /* ... el resto de tu CSS sigue igual ... */
+    .container {
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #444;
+    }
+    .add-btn, .save-mov-btn, .close-btn {
+      background-color: #7f00ff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      margin-top: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+    }
+    input, textarea {
+      width: 100%;
+      margin: 5px 0;
+      padding: 8px;
+      border-radius: 5px;
+      border: none;
+    }
+    .alerta {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ff00aa;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      display: none;
+      z-index: 2000;
+    }
+    .etiqueta-pagado {
+      display: block;
+      font-size: 0.9em;
+      color: #0f0;
+      margin-top: 5px;
+    }
+    .movimientos-scroll {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+    .edit-icon {
+      cursor: pointer;
+      margin-left: 5px;
+    }
   </style>
 </head>
 <body>
@@ -54,7 +124,8 @@
       <tbody id="clientesTabla"></tbody>
     </table>
   </div>
-  <!-- Formulario para agregar cliente -->
+
+  <!-- Modales -->
   <div class="modal" id="formularioCliente">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarFormularioCliente()">Cerrar</button>
@@ -70,7 +141,6 @@
     </div>
   </div>
 
-  <!-- Modal para ver datos del cliente -->
   <div class="modal" id="datosClienteModal">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarDatosCliente()">Cerrar</button>
@@ -89,7 +159,6 @@
     </div>
   </div>
 
-  <!-- Modal para editar teléfono -->
   <div class="modal" id="modalTelefono">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarModalTelefono()">Cerrar</button>
@@ -99,7 +168,6 @@
     </div>
   </div>
 
-  <!-- Modal para editar vencimiento -->
   <div class="modal" id="modalVencimiento">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarModalVencimiento()">Cerrar</button>
@@ -109,7 +177,6 @@
     </div>
   </div>
 
-  <!-- Modal para editar nota -->
   <div class="modal" id="modalNota">
     <div class="modal-content">
       <button class="close-btn" onclick="cerrarModalNota()">Cerrar</button>
@@ -120,229 +187,231 @@
   </div>
 
   <div id="alerta" class="alerta"></div>
-<script>
-let clientes = [];
-let clienteActual = null;
-let indexTelefono = null;
-let indexVencimiento = null;
-let indexNota = null;
 
-function mostrarAlerta(mensaje) {
-  const alerta = document.getElementById("alerta");
-  alerta.textContent = mensaje;
-  alerta.style.display = "block";
-  setTimeout(() => alerta.style.display = "none", 3000);
-}
+  <script>
+    let clientes = [];
+    let clienteActual = null;
+    let indexTelefono = null;
+    let indexVencimiento = null;
+    let indexNota = null;
 
-function abrirFormularioCliente() {
-  document.getElementById("formularioCliente").style.display = "flex";
-}
+    function mostrarAlerta(mensaje) {
+      const alerta = document.getElementById("alerta");
+      alerta.textContent = mensaje;
+      alerta.style.display = "block";
+      setTimeout(() => alerta.style.display = "none", 3000);
+    }
 
-function cerrarFormularioCliente() {
-  document.getElementById("formularioCliente").style.display = "none";
-}
+    function abrirFormularioCliente() {
+      document.getElementById("formularioCliente").style.display = "flex";
+    }
 
-function guardarCliente() {
-  const nombre = document.getElementById("nombreInput").value.trim();
-  const dni = document.getElementById("dniInput").value.trim();
-  const cuotas = parseInt(document.getElementById("cuotasInput").value);
-  const valorCuota = parseFloat(document.getElementById("valorCuotaInput").value);
-  const fechaAlta = document.getElementById("fechaAltaInput").value;
-  const equipo = document.getElementById("equipoInput").value.trim();
-  const nota = document.getElementById("notaInput").value.trim();
+    function cerrarFormularioCliente() {
+      document.getElementById("formularioCliente").style.display = "none";
+    }
 
-  if (!nombre || !dni || isNaN(cuotas) || isNaN(valorCuota) || !fechaAlta || !equipo) {
-    mostrarAlerta("⚠️ Completa todos los campos obligatorios");
-    return;
-  }
+    function guardarCliente() {
+      const nombre = document.getElementById("nombreInput").value.trim();
+      const dni = document.getElementById("dniInput").value.trim();
+      const cuotas = parseInt(document.getElementById("cuotasInput").value);
+      const valorCuota = parseFloat(document.getElementById("valorCuotaInput").value);
+      const fechaAlta = document.getElementById("fechaAltaInput").value;
+      const equipo = document.getElementById("equipoInput").value.trim();
+      const nota = document.getElementById("notaInput").value.trim();
 
-  const totalCredito = cuotas * valorCuota;
+      if (!nombre || !dni || isNaN(cuotas) || isNaN(valorCuota) || !fechaAlta || !equipo) {
+        mostrarAlerta("⚠️ Completa todos los campos obligatorios");
+        return;
+      }
 
-  clientes.push({
-    nombre,
-    dni,
-    cuotas,
-    valorCuota,
-    totalCredito,
-    fechaAlta,
-    equipo,
-    nota,
-    telefono: "",
-    vencimiento: fechaAlta,
-    movimientos: []
-  });
+      const totalCredito = cuotas * valorCuota;
 
-  cerrarFormularioCliente();
-  actualizarTabla();
-  mostrarAlerta("✅ Cliente agregado correctamente");
-}
+            clientes.push({
+        nombre,
+        dni,
+        cuotas,
+        valorCuota,
+        totalCredito,
+        fechaAlta,
+        equipo,
+        nota,
+        telefono: "",
+        vencimiento: fechaAlta,
+        movimientos: []
+      });
 
-function actualizarTabla() {
-  const tabla = document.getElementById("clientesTabla");
-  tabla.innerHTML = "";
-  let saldo = 0;
+      cerrarFormularioCliente();
+      actualizarTabla();
+      mostrarAlerta("✅ Cliente agregado correctamente");
+    }
 
-  clientes.forEach((cliente, index) => {
-    saldo += cliente.totalCredito;
-    const vencimiento = formatearFecha(cliente.vencimiento);
-    const diasRestantes = calcularDiasRestantes(cliente.vencimiento);
-    const totalPagado = cliente.movimientos.reduce((acc, m) => acc + m.pago, 0);
+    function actualizarTabla() {
+      const tabla = document.getElementById("clientesTabla");
+      tabla.innerHTML = "";
+      let saldo = 0;
 
-    const fila = document.createElement("tr");
-    fila.innerHTML = `
-      <td>${cliente.nombre} <span style="cursor:pointer;" onclick="verDatosCliente(${index})">⚙️</span></td>
-      <td>${cliente.cuotas} de $${cliente.valorCuota.toLocaleString()} → Total: $${cliente.totalCredito.toLocaleString()}
-        <span class="etiqueta-pagado">Pagado: $${totalPagado.toLocaleString()}</span>
-      </td>
-      <td>
-        ${vencimiento}
-        <span style="cursor:pointer;" onclick="editarVencimiento(${index})">✏️</span><br>
-        <small>Faltan ${diasRestantes} días</small>
-      </td>
-      <td>
-        ${cliente.telefono || ""}
-        <span style="cursor:pointer;" onclick="editarTelefono(${index})">✏️</span>
-      </td>
-    `;
-    tabla.appendChild(fila);
-  });
+      clientes.forEach((cliente, index) => {
+        saldo += cliente.totalCredito;
+        const vencimiento = formatearFecha(cliente.vencimiento);
+        const diasRestantes = calcularDiasRestantes(cliente.vencimiento);
+        const totalPagado = cliente.movimientos.reduce((acc, m) => acc + m.pago, 0);
 
-  document.getElementById("saldoTotal").textContent = saldo.toLocaleString();
-}
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${cliente.nombre} <span style="cursor:pointer;" onclick="verDatosCliente(${index})">⚙️</span></td>
+          <td>${cliente.cuotas} de $${cliente.valorCuota.toLocaleString()} → Total: $${cliente.totalCredito.toLocaleString()}
+            <span class="etiqueta-pagado">Pagado: $${totalPagado.toLocaleString()}</span>
+          </td>
+          <td>
+            ${vencimiento}
+            <span style="cursor:pointer;" onclick="editarVencimiento(${index})">✏️</span><br>
+            <small>Faltan ${diasRestantes} días</small>
+          </td>
+          <td>
+            ${cliente.telefono || ""}
+            <span style="cursor:pointer;" onclick="editarTelefono(${index})">✏️</span>
+          </td>
+        `;
+        tabla.appendChild(fila);
+      });
 
-function verDatosCliente(index) {
-  clienteActual = index;
-  const cliente = clientes[index];
-  document.getElementById("datosTitulo").textContent = `Datos de ${cliente.nombre}`;
-  document.getElementById("datosContenido").innerHTML = `
-    <p><strong>DNI:</strong> ${cliente.dni}</p>
-    <p><strong>Equipo:</strong> ${cliente.equipo}</p>
-    <p><strong>Nota:</strong> ${cliente.nota || "Sin nota"} 
-      <span class="edit-icon" onclick="editarNota(${index})">✏️</span></p>
-  `;
-  actualizarMovimientos();
-  document.getElementById("datosClienteModal").style.display = "flex";
-}
+      document.getElementById("saldoTotal").textContent = saldo.toLocaleString();
+    }
 
-function editarNota(index) {
-  indexNota = index;
-  document.getElementById("notaEditarInput").value = clientes[index].nota || "";
-  document.getElementById("modalNota").style.display = "flex";
-}
+    function verDatosCliente(index) {
+      clienteActual = index;
+      const cliente = clientes[index];
+      document.getElementById("datosTitulo").textContent = `Datos de ${cliente.nombre}`;
+      document.getElementById("datosContenido").innerHTML = `
+        <p><strong>DNI:</strong> ${cliente.dni}</p>
+        <p><strong>Equipo:</strong> ${cliente.equipo}</p>
+        <p><strong>Nota:</strong> ${cliente.nota || "Sin nota"} 
+          <span class="edit-icon" onclick="editarNota(${index})">✏️</span></p>
+      `;
+      actualizarMovimientos();
+      document.getElementById("datosClienteModal").style.display = "flex";
+    }
 
-function guardarNota() {
-  const nuevaNota = document.getElementById("notaEditarInput").value.trim();
-  clientes[indexNota].nota = nuevaNota;
-  cerrarModalNota();
-  verDatosCliente(indexNota);
-  mostrarAlerta("📝 Nota actualizada");
-}
+    function editarNota(index) {
+      indexNota = index;
+      document.getElementById("notaEditarInput").value = clientes[index].nota || "";
+      document.getElementById("modalNota").style.display = "flex";
+    }
 
-function cerrarModalNota() {
-  document.getElementById("modalNota").style.display = "none";
-}
+    function guardarNota() {
+      const nuevaNota = document.getElementById("notaEditarInput").value.trim();
+      clientes[indexNota].nota = nuevaNota;
+      cerrarModalNota();
+      verDatosCliente(indexNota);
+      mostrarAlerta("📝 Nota actualizada");
+    }
 
-function actualizarMovimientos() {
-  const cliente = clientes[clienteActual];
-  const tbody = document.getElementById("detalleCliente");
-  tbody.innerHTML = "";
-  let entregado = 0;
+    function cerrarModalNota() {
+      document.getElementById("modalNota").style.display = "none";
+    }
 
-  cliente.movimientos.forEach(mov => {
-    entregado += mov.pago;
-    const fila = document.createElement("tr");
-    fila.innerHTML = `
-      <td>${formatearFecha(mov.fecha)}</td>
-      <td>$${mov.pago.toLocaleString()}</td>
-      <td>$${entregado.toLocaleString()}</td>
-    `;
-    tbody.appendChild(fila);
-  });
+    function actualizarMovimientos() {
+      const cliente = clientes[clienteActual];
+      const tbody = document.getElementById("detalleCliente");
+      tbody.innerHTML = "";
+      let entregado = 0;
 
-  actualizarTabla();
-}
+      cliente.movimientos.forEach(mov => {
+        entregado += mov.pago;
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${formatearFecha(mov.fecha)}</td>
+          <td>$${mov.pago.toLocaleString()}</td>
+          <td>$${entregado.toLocaleString()}</td>
+        `;
+        tbody.appendChild(fila);
+      });
 
-function guardarMovimiento() {
-  const fecha = document.getElementById("fechaInput").value;
-  const pago = parseFloat(document.getElementById("pagoInput").value);
+      actualizarTabla();
+    }
 
-  if (!fecha || isNaN(pago)) {
-    mostrarAlerta("⚠️ Ingresá una fecha y un monto válido");
-    return;
-  }
+    function guardarMovimiento() {
+      const fecha = document.getElementById("fechaInput").value;
+      const pago = parseFloat(document.getElementById("pagoInput").value);
 
-  const cliente = clientes[clienteActual];
-  cliente.movimientos.push({ fecha, pago });
+      if (!fecha || isNaN(pago)) {
+        mostrarAlerta("⚠️ Ingresá una fecha y un monto válido");
+        return;
+      }
 
-  document.getElementById("fechaInput").value = "";
-  document.getElementById("pagoInput").value = "";
+      const cliente = clientes[clienteActual];
+      cliente.movimientos.push({ fecha, pago });
 
-  actualizarMovimientos();
-  mostrarAlerta("✅ Movimiento registrado");
-}
+      document.getElementById("fechaInput").value = "";
+      document.getElementById("pagoInput").value = "";
 
-function editarTelefono(index) {
-  indexTelefono = index;
-  document.getElementById("telefonoInput").value = clientes[index].telefono || "";
-  document.getElementById("modalTelefono").style.display = "flex";
-}
+      actualizarMovimientos();
+      mostrarAlerta("✅ Movimiento registrado");
+    }
 
-function guardarTelefono() {
-  const nuevoTelefono = document.getElementById("telefonoInput").value.trim();
-  clientes[indexTelefono].telefono = nuevoTelefono;
-  cerrarModalTelefono();
-  actualizarTabla();
-  mostrarAlerta("📞 Teléfono actualizado");
-}
+    function editarTelefono(index) {
+      indexTelefono = index;
+      document.getElementById("telefonoInput").value = clientes[index].telefono || "";
+      document.getElementById("modalTelefono").style.display = "flex";
+    }
 
-function cerrarModalTelefono() {
-  document.getElementById("modalTelefono").style.display = "none";
-}
+    function guardarTelefono() {
+      const nuevoTelefono = document.getElementById("telefonoInput").value.trim();
+      clientes[indexTelefono].telefono = nuevoTelefono;
+      cerrarModalTelefono();
+      actualizarTabla();
+      mostrarAlerta("📞 Teléfono actualizado");
+    }
 
-function editarVencimiento(index) {
-  indexVencimiento = index;
-  document.getElementById("vencimientoInput").value = clientes[index].vencimiento;
-  document.getElementById("modalVencimiento").style.display = "flex";
-}
+    function cerrarModalTelefono() {
+      document.getElementById("modalTelefono").style.display = "none";
+    }
 
-function guardarVencimiento() {
-  const nuevaFecha = document.getElementById("vencimientoInput").value;
-  if (!nuevaFecha) {
-    mostrarAlerta("⚠️ Ingresá una fecha válida");
-    return;
-  }
-  clientes[indexVencimiento].vencimiento = nuevaFecha;
-  cerrarModalVencimiento();
-  actualizarTabla();
-  mostrarAlerta("📅 Vencimiento actualizado");
-}
+    function editarVencimiento(index) {
+      indexVencimiento = index;
+      document.getElementById("vencimientoInput").value = clientes[index].vencimiento;
+      document.getElementById("modalVencimiento").style.display = "flex";
+    }
 
-function cerrarModalVencimiento() {
-  document.getElementById("modalVencimiento").style.display = "none";
-}
+    function guardarVencimiento() {
+      const nuevaFecha = document.getElementById("vencimientoInput").value;
+      if (!nuevaFecha) {
+        mostrarAlerta("⚠️ Ingresá una fecha válida");
+        return;
+      }
+      clientes[indexVencimiento].vencimiento = nuevaFecha;
+      cerrarModalVencimiento();
+      actualizarTabla();
+      mostrarAlerta("📅 Vencimiento actualizado");
+    }
 
-function cerrarDatosCliente() {
-  document.getElementById("datosClienteModal").style.display = "none";
-}
+    function cerrarModalVencimiento() {
+      document.getElementById("modalVencimiento").style.display = "none";
+    }
 
-function formatearFecha(fechaISO) {
-  const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
-    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
-  const fecha = new Date(fechaISO);
-  const dia = fecha.getDate().toString().padStart(2, '0');
-  const mes = meses[fecha.getMonth()];
-  const año = fecha.getFullYear();
-  return `${dia} de ${mes} de ${año}`;
-}
+    function cerrarDatosCliente() {
+      document.getElementById("datosClienteModal").style.display = "none";
+    }
 
-function calcularDiasRestantes(fecha) {
-  const hoy = new Date();
-  const venc = new Date(fecha);
-  const diff = venc - hoy;
-  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-}
+    function formatearFecha(fechaISO) {
+      const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
+        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+      const fecha = new Date(fechaISO);
+      const dia = fecha.getDate().toString().padStart(2, '0');
+      const mes = meses[fecha.getMonth()];
+      const año = fecha.getFullYear();
+      return `${dia} de ${mes} de ${año}`;
+    }
 
-actualizarTabla();
-</script>
+    function calcularDiasRestantes(fecha) {
+      const hoy = new Date();
+      const venc = new Date(fecha);
+      const diff = venc - hoy;
+      return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    }
+
+    actualizarTabla();
+  </script>
 </body>
 </html>
+
