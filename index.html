@@ -5,125 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Crédito Personal - Clientes</title>
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #050505;
-      color: #fff;
-    }
-    header {
-      background: linear-gradient(90deg, #7f00ff, #ff00aa);
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 0 15px rgba(127, 0, 255, 0.5);
-    }
-    h1 {
-      margin: 0;
-      font-size: 1.8em;
-    }
-    main {
-      max-width: 1000px;
-      margin: auto;
-    }
-    .saldo {
-      text-align: right;
-      padding: 10px 20px;
-      font-size: 1.2em;
-      font-weight: bold;
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0% { color: #ff00aa; text-shadow: 0 0 5px #ff00aa; }
-      50% { color: #7f00ff; text-shadow: 0 0 15px #7f00ff; }
-      100% { color: #ff00aa; text-shadow: 0 0 5px #ff00aa; }
-    }
-    .etiqueta-roja {
-      display: inline-block;
-      background-color: #ff0033;
-      color: white;
-      padding: 3px 8px;
-      border-radius: 4px;
-      animation: parpadeo 1s infinite;
-      font-size: 0.9em;
-      margin-left: 5px;
-    }
-    @keyframes parpadeo {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-    .container {
-      padding: 20px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid #444;
-      vertical-align: top;
-    }
-    .add-btn, .save-mov-btn, .close-btn {
-      background-color: #7f00ff;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      margin-top: 10px;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .modal-content {
-      background: #222;
-      padding: 20px;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 500px;
-    }
-    input, textarea {
-      width: 100%;
-      margin: 5px 0;
-      padding: 8px;
-      border-radius: 5px;
-      border: none;
-    }
-    .alerta {
-      position: fixed;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #ff00aa;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 5px;
-      display: none;
-      z-index: 2000;
-    }
-    .etiqueta-pagado {
-      display: block;
-      font-size: 0.9em;
-      color: #0f0;
-      margin-top: 5px;
-    }
-    .movimientos-scroll {
-      max-height: 200px;
-      overflow-y: auto;
-      margin-top: 10px;
-    }
-    .edit-icon {
-      cursor: pointer;
-      margin-left: 5px;
-    }
+    /* Estilos completos */
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background-color: #050505; color: #fff; }
+    header { background: linear-gradient(90deg, #7f00ff, #ff00aa); padding: 20px; text-align: center; box-shadow: 0 0 15px rgba(127, 0, 255, 0.5); }
+    h1 { margin: 0; font-size: 1.8em; }
+    main { max-width: 1000px; margin: auto; }
+    .saldo { text-align: right; padding: 10px 20px; font-size: 1.2em; font-weight: bold; animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { color: #ff00aa; text-shadow: 0 0 5px #ff00aa; } 50% { color: #7f00ff; text-shadow: 0 0 15px #7f00ff; } 100% { color: #ff00aa; text-shadow: 0 0 5px #ff00aa; } }
+    .etiqueta-roja { display: inline-block; background-color: #ff0033; color: white; padding: 3px 8px; border-radius: 4px; animation: parpadeo 1s infinite; font-size: 0.9em; margin-left: 5px; }
+    @keyframes parpadeo { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .container { padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 10px; border-bottom: 1px solid #444; vertical-align: top; }
+    .add-btn, .save-mov-btn, .close-btn { background-color: #7f00ff; color: white; border: none; padding: 10px 15px; margin-top: 10px; cursor: pointer; border-radius: 5px; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: #222; padding: 20px; border-radius: 10px; width: 90%; max-width: 500px; }
+    input, textarea { width: 100%; margin: 5px 0; padding: 8px; border-radius: 5px; border: none; }
+    .alerta { position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); background: #ff00aa; color: white; padding: 10px 20px; border-radius: 5px; display: none; z-index: 2000; }
+    .etiqueta-pagado { display: block; font-size: 0.9em; color: #0f0; margin-top: 5px; }
+    .movimientos-scroll { max-height: 200px; overflow-y: auto; margin-top: 10px; }
+    .edit-icon { cursor: pointer; margin-left: 5px; }
   </style>
 </head>
 <body>
@@ -232,8 +133,7 @@
     }
 
     function guardarCliente() {
-      const nombre = document.getElementById("nombreInput").value.trim
-            const nombre = document.getElementById("nombreInput").value.trim();
+      const nombre = document.getElementById("nombreInput").value.trim();
       const dni = document.getElementById("dniInput").value.trim();
       const cuotas = parseInt(document.getElementById("cuotasInput").value);
       const valorCuota = parseFloat(document.getElementById("valorCuotaInput").value);
@@ -241,7 +141,7 @@
       const equipo = document.getElementById("equipoInput").value.trim();
       const nota = document.getElementById("notaInput").value.trim();
 
-      if (!nombre || !dni || isNaN(cuotas) || isNaN(valorCuota) || !fechaAlta || !equipo) {
+            if (!nombre || !dni || isNaN(cuotas) || isNaN(valorCuota) || !fechaAlta || !equipo) {
         mostrarAlerta("⚠️ Completa todos los campos obligatorios");
         return;
       }
@@ -438,5 +338,3 @@
   </script>
 </body>
 </html>
-
-
